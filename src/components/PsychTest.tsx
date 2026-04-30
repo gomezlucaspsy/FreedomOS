@@ -3,6 +3,7 @@ import { Brain, RotateCcw } from 'lucide-react';
 import { RIASEC_QUESTIONS } from '../data/riasecQuestions';
 import { BFI10_QUESTIONS } from '../data/bfi10Questions';
 import { scoreRIASEC, scoreBigFive, buildPsychProfile } from '../core/PsychScorer';
+import { getPsychMemoryCycle } from '../core/PsychMemoryCycle';
 import type { PsychProfile, RIASECCategory } from '../models/PsychProfile';
 import { RIASEC_LABELS, BIG_FIVE_LABELS } from '../models/PsychProfile';
 
@@ -29,6 +30,8 @@ function Bar({ value, color }: { value: number; color: string }) {
 
 // ─── Results view ─────────────────────────────────────────────────────────────
 function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => void }) {
+  const memoryCycle = getPsychMemoryCycle();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
       {/* Holland code */}
@@ -112,6 +115,41 @@ function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => v
         ))}
       </div>
 
+      <div style={{ background: '#0a0a0a', border: '1px solid #222', borderRadius: '10px', padding: '1rem' }}>
+        <p style={{ color: '#555', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
+          Ciclo de memoria psicológica
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+          {memoryCycle.entries.length === 0 ? (
+            <p style={{ color: '#666', fontSize: '0.8rem', margin: 0 }}>
+              Aún no hay recuerdos psicológicos guardados.
+            </p>
+          ) : memoryCycle.entries.map((entry, index) => (
+            <div key={entry.id} style={{ border: '1px solid #1f1f1f', borderRadius: '8px', padding: '0.75rem 0.9rem', background: entry.stage === 'active' ? 'rgba(0,245,196,0.05)' : 'transparent' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.8rem', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <span style={{ color: entry.stage === 'active' ? 'var(--accent-cyan)' : '#aaa', fontSize: '0.8rem', fontWeight: 700 }}>
+                  {index === 0 ? 'Memoria actual' : `Memoria ${index + 1}`}
+                </span>
+                <span style={{ color: '#666', fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                  {entry.stage === 'active' ? 'activa' : 'archivada'}
+                </span>
+              </div>
+              <p style={{ color: '#888', fontSize: '0.74rem', margin: '0 0 0.35rem 0' }}>
+                Creada: {new Date(entry.createdAt).toLocaleString()}
+              </p>
+              {entry.archivedAt && (
+                <p style={{ color: '#666', fontSize: '0.74rem', margin: '0 0 0.35rem 0' }}>
+                  Archivada: {new Date(entry.archivedAt).toLocaleString()}
+                </p>
+              )}
+              <p style={{ color: '#ddd', fontSize: '0.82rem', margin: 0 }}>
+                Holland {entry.profile.topRIASEC.join('')} · Adaptabilidad {entry.profile.adaptabilityScore}% · Riesgo {entry.profile.integrationRisk}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <button onClick={onReset} style={{
         background: 'transparent',
         color: '#555',
@@ -132,13 +170,13 @@ function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => v
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function PsychTest({ onProfileComplete }: { onProfileComplete?: (p: PsychProfile) => void }) {
+export function PsychTest({ initialProfile = null, onProfileComplete, onProfileReset }: { initialProfile?: PsychProfile | null; onProfileComplete?: (p: PsychProfile) => void; onProfileReset?: () => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(TOTAL).fill(0));
-  const [profile, setProfile] = useState<PsychProfile | null>(null);
+  const [profile, setProfile] = useState<PsychProfile | null>(initialProfile);
 
   const isIntro = step === 0;
-  const isResults = step === TOTAL + 1;
+  const isResults = step === TOTAL + 1 || (step === 0 && profile !== null);
   const questionIndex = step - 1;
   const progress = !isIntro && !isResults ? (questionIndex / TOTAL) * 100 : 0;
   const currentQuestion = !isIntro && !isResults ? ALL_QUESTIONS[questionIndex] : null;
@@ -160,7 +198,12 @@ export function PsychTest({ onProfileComplete }: { onProfileComplete?: (p: Psych
     }
   };
 
-  const reset = () => { setStep(0); setAnswers(Array(TOTAL).fill(0)); setProfile(null); };
+  const reset = () => {
+    setStep(0);
+    setAnswers(Array(TOTAL).fill(0));
+    setProfile(null);
+    onProfileReset?.();
+  };
 
   if (isIntro) {
     return (

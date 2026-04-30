@@ -6,13 +6,24 @@ import { SkillGapPanel } from './components/SkillGapPanel';
 import { PsychTest } from './components/PsychTest';
 import { PassportPanel } from './components/PassportPanel';
 import { HermesChat } from './components/HermesChat';
+import { getPsychMemoryCycle, storePsychProfile, archiveActivePsychProfile } from './core/PsychMemoryCycle';
 import type { MigrantPerson } from './models/MigrantPerson';
 import type { PsychProfile } from './models/PsychProfile';
 import './index.css';
 
 function App() {
   const [migrantPerson, setMigrantPerson] = useState<MigrantPerson | null>(null);
-  const [psychProfile, setPsychProfile] = useState<PsychProfile | null>(null);
+  const [psychProfile, setPsychProfile] = useState<PsychProfile | null>(() => getPsychMemoryCycle().activeEntry?.profile ?? null);
+
+  const handleProfileComplete = (profile: PsychProfile) => {
+    const cycle = storePsychProfile(profile);
+    setPsychProfile(cycle.activeEntry?.profile ?? profile);
+  };
+
+  const handleProfileReset = () => {
+    archiveActivePsychProfile();
+    setPsychProfile(null);
+  };
 
   return (
     <div className="app-container">
@@ -83,7 +94,7 @@ function App() {
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Test RIASEC + Big Five. Descubre tu perfil vocacional, adaptabilidad y compatibilidad por país destino.
           </p>
-          <PsychTest onProfileComplete={setPsychProfile} />
+          <PsychTest initialProfile={psychProfile} onProfileComplete={handleProfileComplete} onProfileReset={handleProfileReset} />
         </div>
 
         <div style={{
