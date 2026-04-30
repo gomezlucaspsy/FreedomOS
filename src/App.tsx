@@ -7,6 +7,7 @@ import { DocumentUploader } from './components/DocumentUploader';
 import { SkillGapPanel } from './components/SkillGapPanel';
 import { PsychTest } from './components/PsychTest';
 import { PassportPanel } from './components/PassportPanel';
+import { HermesChat } from './components/HermesChat';
 import type { MigrantPerson } from './models/MigrantPerson';
 import type { PsychProfile } from './models/PsychProfile';
 import './index.css';
@@ -26,6 +27,7 @@ function App() {
   return (
     <div className="app-container">
       <InstallPWA />
+      <HermesChat />
       
       <header className="app-header">
         <h1 className="title-tech">

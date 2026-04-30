@@ -1,8 +1,12 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Carga .env.local sin prefijo VITE_ — la key NUNCA se compila al bundle
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
   plugins: [
     react(),
     VitePWA({
@@ -31,4 +35,21 @@ export default defineConfig({
       }
     })
   ],
+  server: {
+    proxy: {
+      '/api/hermes': {
+        target: 'https://api.anthropic.com',
+        changeOrigin: true,
+        rewrite: () => '/v1/messages',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('x-api-key', env.ANTHROPIC_KEY ?? '');
+            proxyReq.setHeader('anthropic-version', '2023-06-01');
+            proxyReq.setHeader('anthropic-dangerous-direct-browser-access', 'true');
+          });
+        },
+      },
+    },
+  },
+  };
 });
