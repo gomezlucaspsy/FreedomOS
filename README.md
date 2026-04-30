@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# FreedomOS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+FreedomOS es una plataforma de autoevaluacion personal orientada a personas migrantes, estudiantes y profesionales internacionales. Combina analisis de perfil, brecha de habilidades y un modulo psicometrico para ayudar a construir un plan personal de desarrollo.
 
-Currently, two official plugins are available:
+## Demo en Vercel
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Sitio web: https://freedomos.vercel.app
 
-## React Compiler
+## Descripcion detallada
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+FreedomOS integra cuatro bloques funcionales principales:
 
-## Expanding the ESLint configuration
+1. Perfil migratorio desde documento
+- Permite subir CV o carta de presentacion (.docx / .txt).
+- Extrae informacion relevante para estructurar un perfil de habilidades y experiencia.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+2. Analisis de brecha de habilidades
+- Contrasta el perfil personal con demanda estimada por pais destino.
+- Sugiere habilidades prioritarias para mejorar empleabilidad.
+- Presenta rutas de aprendizaje con estimaciones de tiempo y plataformas.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+3. Test psicologico migratorio
+- Incluye instrumentos tipo RIASEC y Big Five para orientar autoconocimiento.
+- Estima adaptabilidad y afinidad contextual para distintos destinos.
+- Genera resultados interpretativos para reflexion personal.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+4. Pasaporte digital personal
+- Exporta resultados en PDF o JSON.
+- Consolida informacion personal, tecnica y psicometrica en un formato portable.
+- Es autoemitido y de control individual (no institucional).
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Posibles casos de uso
+
+- Persona que planea migrar y quiere identificar fortalezas y brechas antes de aplicar a empleo.
+- Estudiante internacional que busca mapear habilidades para insercion laboral en otro pais.
+- Profesional en transicion de carrera que necesita priorizar formacion para aumentar competitividad.
+- Mentor/a o coach de empleabilidad que acompana procesos de orientacion individual.
+- Bootcamps o programas comunitarios que deseen usar la herramienta como apoyo de autodiagnostico.
+
+## Limitaciones legales y alcance de uso
+
+IMPORTANTE: FreedomOS es una herramienta de apoyo para autoevaluacion y orientacion personal.
+
+- Solo para self-assessment (autoevaluacion): no sustituye asesoria profesional.
+- No constituye asesoria legal, migratoria, psicologica, clinica, financiera ni laboral.
+- No emite diagnosticos clinicos ni decisiones oficiales de admision, visa o contratacion.
+- Los resultados son estimativos, educativos y deben ser contrastados con fuentes oficiales y especialistas.
+- El usuario es responsable del uso e interpretacion de la informacion generada.
+
+## Uso libre, forks y proyectos derivados
+
+Este proyecto se comparte como uso libre a nivel comunitario.
+
+- Cualquier persona esta habilitada a usarlo, estudiarlo y adaptarlo.
+- Cualquier persona puede crear su propio proyecto derivado y hacer fork de este repositorio.
+- Se permiten mejoras, variantes y reimplementaciones para fines educativos, experimentales o de impacto social.
+
+Sugerencia: si creas una version derivada, incluir credito al proyecto original ayuda a mantener trazabilidad comunitaria.
+
+## Desarrollo local
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Abrir en navegador: http://localhost:3000
