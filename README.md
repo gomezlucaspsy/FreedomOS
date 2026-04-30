@@ -6,6 +6,23 @@ FreedomOS es una plataforma de autoevaluacion personal orientada a personas migr
 
 - Sitio web: https://freedomos.vercel.app
 
+## Metodologia y datos verificables
+
+- Guia rigurosa de datos: [docs/RIGOROUS_DATA_GUIDE.md](docs/RIGOROUS_DATA_GUIDE.md)
+- Esta guia documenta fuentes publicas, criterios de auditabilidad, limites metodologicos y una hoja de ruta para reemplazar estimaciones opacas por evidencia verificable.
+- Integracion live implementada en API interna: [app/api/rigorous-data/route.ts](app/api/rigorous-data/route.ts)
+
+### APIs integradas (runtime)
+
+- BLS API (USA): desempleo oficial serie LNS14000000.
+- ILOSTAT API: desempleo anual SDG_0852_SEX_AGE_RT_A (total poblacion activa).
+- OECD SDMX API: migracion neta country-level (NETMIG) del flujo DSD_REG_DEMO@DF_MIGR_FLOW.
+
+### Variables de entorno
+
+- Opcional: BLS_API_KEY (mejora cuota y estabilidad de BLS).
+- Si no esta definida, BLS se consulta en modo publico.
+
 ## Descripcion detallada
 
 FreedomOS integra cuatro bloques funcionales principales:

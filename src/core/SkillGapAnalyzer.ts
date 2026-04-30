@@ -1,4 +1,11 @@
 import type { MigrantPerson } from '../models/MigrantPerson';
+import {
+  buildCountryDemandDiagnostics,
+  resolveDataSources,
+  type CountryDemandDiagnostics,
+  type DataSourceMetadata,
+  type DemandTier,
+} from './RigorousData';
 
 export interface SkillRecommendation {
   skill: string;
@@ -6,6 +13,12 @@ export interface SkillRecommendation {
   learningWeeks: number;
   platforms: string[];
   reason: string;
+  confidenceLevel?: 'alta' | 'media' | 'baja';
+  confidenceScore?: number;
+  modelVersion?: string;
+  updatedAt?: string;
+  evidence?: DataSourceMetadata[];
+  legalNote?: string;
 }
 
 const SKILL_LEARNING_META: Record<string, Omit<SkillRecommendation, 'skill'>> = {
@@ -108,14 +121,49 @@ const COUNTRY_CRITICAL_SKILLS: Record<string, string[]> = {
 
 export const AVAILABLE_COUNTRIES = Object.keys(COUNTRY_CRITICAL_SKILLS);
 
+export function getDemandTierForCountry(country: string): DemandTier {
+  const demanded = COUNTRY_CRITICAL_SKILLS[country] ?? [];
+  if (demanded.length >= 10) return 'alta';
+  if (demanded.length >= 7) return 'media';
+  return 'baja';
+}
+
+export function getProfileAlignment(person: MigrantPerson, targetCountry: string): number {
+  const demanded = COUNTRY_CRITICAL_SKILLS[targetCountry] ?? [];
+  if (demanded.length === 0) return 0;
+  const personSkills = new Set(person.skills.map(skill => skill.toLowerCase()));
+  const matchedCount = demanded.filter(skill => personSkills.has(skill.toLowerCase())).length;
+  return Math.round((matchedCount / demanded.length) * 100);
+}
+
+export function getSkillGapDiagnostics(person: MigrantPerson, targetCountry: string): CountryDemandDiagnostics {
+  return buildCountryDemandDiagnostics({
+    country: targetCountry,
+    demandTier: getDemandTierForCountry(targetCountry),
+    profileAlignment: getProfileAlignment(person, targetCountry),
+  });
+}
+
 export function analyzeSkillGap(person: MigrantPerson, targetCountry: string): SkillRecommendation[] {
   const demanded = COUNTRY_CRITICAL_SKILLS[targetCountry] ?? [];
   const personSkillsLower = person.skills.map(s => s.toLowerCase());
   const gaps = demanded.filter(s => !personSkillsLower.includes(s.toLowerCase()));
+  const diagnostics = getSkillGapDiagnostics(person, targetCountry);
+  const evidence = resolveDataSources(['bls', 'ilo', 'oecd', 'stackOverflow', 'octoverse']);
   return gaps
     .map(skill => {
       const meta = SKILL_LEARNING_META[skill];
-      return meta ? { skill, ...meta } : null;
+      if (!meta) return null;
+      return {
+        skill,
+        ...meta,
+        confidenceLevel: diagnostics.confidenceLevel,
+        confidenceScore: diagnostics.confidenceScore,
+        modelVersion: diagnostics.modelVersion,
+        updatedAt: diagnostics.updatedAt,
+        evidence,
+        legalNote: diagnostics.legalLimitations[0],
+      };
     })
     .filter(Boolean) as SkillRecommendation[];
 }

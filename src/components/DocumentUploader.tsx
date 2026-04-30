@@ -189,6 +189,12 @@ export function DocumentUploader({ onMigrantParsed }: Props) {
                       </span>
                     </div>
                     <p style={{ color: '#666', fontSize: '0.78rem', margin: '0.2rem 0 0.5rem' }}>{op.reason}</p>
+                    {(op.demandScore !== undefined || op.confidenceScore !== undefined) && (
+                      <p style={{ color: '#666', fontSize: '0.72rem', margin: '0 0 0.5rem' }}>
+                        Score demanda: {op.demandScore ?? 'N/A'}/100 · Confianza: {op.confidenceScore ?? 'N/A'}/100
+                        {op.modelVersion ? ` · ${op.modelVersion}` : ''}
+                      </p>
+                    )}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
                       {op.matchedSkills.map(s => (
                         <span key={s} style={{
@@ -201,6 +207,22 @@ export function DocumentUploader({ onMigrantParsed }: Props) {
                         }}>{s}</span>
                       ))}
                     </div>
+                    {op.sources && op.sources.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.45rem' }}>
+                        {op.sources.slice(0, 3).map(source => (
+                          <span key={source} style={{
+                            background: 'rgba(0,245,196,0.05)',
+                            color: '#80c1b4',
+                            border: '1px solid #22443d',
+                            borderRadius: '3px',
+                            padding: '0.08rem 0.35rem',
+                            fontSize: '0.66rem',
+                          }}>
+                            {source}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

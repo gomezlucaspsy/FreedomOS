@@ -1,5 +1,6 @@
 import type { MigrantPerson } from './MigrantPerson';
 import type { SkillRecommendation } from '../core/SkillGapAnalyzer';
+import type { CountryDemandDiagnostics } from '../core/RigorousData';
 
 export interface MigrantPassport {
   version: '1.0';
@@ -31,5 +32,6 @@ export interface MigrantPassport {
   skillGapRoadmap: {
     targetCountry: string;
     recommendations: SkillRecommendation[];
+    diagnostics?: CountryDemandDiagnostics;
   } | null;
 }

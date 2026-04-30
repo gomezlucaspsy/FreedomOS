@@ -3,6 +3,7 @@ import type { MigrantPassport } from '../models/MigrantPassport';
 import type { MigrantPerson } from '../models/MigrantPerson';
 import type { PsychProfile } from '../models/PsychProfile';
 import type { SkillRecommendation } from './SkillGapAnalyzer';
+import type { CountryDemandDiagnostics } from './RigorousData';
 import { BIG_FIVE_LABELS } from '../models/PsychProfile';
 
 // ─── Build passport object ────────────────────────────────────────────────────
@@ -10,7 +11,7 @@ import { BIG_FIVE_LABELS } from '../models/PsychProfile';
 export function buildPassport(
   migrant: MigrantPerson,
   psychProfile: PsychProfile | null,
-  skillGap: { targetCountry: string; recommendations: SkillRecommendation[] } | null
+  skillGap: { targetCountry: string; recommendations: SkillRecommendation[]; diagnostics?: CountryDemandDiagnostics } | null
 ): MigrantPassport {
   return {
     version: '1.0',

@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { FileJson, FileText, Shield, AlertCircle } from 'lucide-react';
 import { buildPassport, exportPassportPDF, exportPassportJSON } from '../core/PassportExporter';
-import { analyzeSkillGap, AVAILABLE_COUNTRIES } from '../core/SkillGapAnalyzer';
+import {
+  analyzeSkillGap,
+  AVAILABLE_COUNTRIES,
+  getSkillGapDiagnostics,
+  getDemandTierForCountry,
+  getProfileAlignment,
+} from '../core/SkillGapAnalyzer';
 import type { MigrantPerson } from '../models/MigrantPerson';
 import type { PsychProfile } from '../models/PsychProfile';
 
@@ -24,8 +30,37 @@ export function PassportPanel({ migrant, psychProfile }: Props) {
     if (!migrant) return;
     setExporting(true);
     try {
+      let liveDiagnostics = targetCountry ? getSkillGapDiagnostics(migrant, targetCountry) : undefined;
+
+      if (targetCountry) {
+        try {
+          const response = await fetch('/api/rigorous-data', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              country: targetCountry,
+              demandTier: getDemandTierForCountry(targetCountry),
+              profileAlignment: getProfileAlignment(migrant, targetCountry),
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data?.diagnostics) {
+              liveDiagnostics = data.diagnostics;
+            }
+          }
+        } catch {
+          // Keep local diagnostics if live APIs fail.
+        }
+      }
+
       const skillGap = targetCountry
-        ? { targetCountry, recommendations: analyzeSkillGap(migrant, targetCountry) }
+        ? {
+            targetCountry,
+            recommendations: analyzeSkillGap(migrant, targetCountry),
+            diagnostics: liveDiagnostics,
+          }
         : null;
       const passport = buildPassport(migrant, psychProfile, skillGap);
       if (format === 'pdf') exportPassportPDF(passport);

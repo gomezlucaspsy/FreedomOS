@@ -3,7 +3,13 @@ export interface CountryOpportunity {
   matchedSkills: string[];
   demandLevel: 'alta' | 'media' | 'baja';
   reason: string;
+  demandScore?: number;
+  confidenceScore?: number;
+  modelVersion?: string;
+  sources?: string[];
 }
+
+import { buildCountryDemandDiagnostics } from './RigorousData';
 
 // Demanda de habilidades por país (mapa estático, extensible)
 const SKILL_DEMAND: Record<string, { skills: string[]; reason: string; demandLevel: 'alta' | 'media' | 'baja' }> = {
@@ -202,11 +208,20 @@ export function getOpportunitiesForSkills(skills: string[]): CountryOpportunity[
       data.skills.some(s => s.toLowerCase() === skill.toLowerCase())
     );
     if (matched.length > 0) {
+      const diagnostics = buildCountryDemandDiagnostics({
+        country,
+        demandTier: data.demandLevel,
+        profileAlignment: Math.round((matched.length / data.skills.length) * 100),
+      });
       results.push({
         country,
         matchedSkills: matched,
         demandLevel: data.demandLevel,
         reason: data.reason,
+        demandScore: diagnostics.score,
+        confidenceScore: diagnostics.confidenceScore,
+        modelVersion: diagnostics.modelVersion,
+        sources: diagnostics.sources.map(source => source.name),
       });
     }
   }

@@ -2,9 +2,18 @@
 
 import { useState } from 'react';
 import { TrendingUp, Clock, Search, ChevronDown } from 'lucide-react';
-import { analyzeSkillGap, AVAILABLE_COUNTRIES, getCareerPaths, CAREER_PATHS } from '../core/SkillGapAnalyzer';
+import {
+  analyzeSkillGap,
+  AVAILABLE_COUNTRIES,
+  getCareerPaths,
+  CAREER_PATHS,
+  getSkillGapDiagnostics,
+  getDemandTierForCountry,
+  getProfileAlignment,
+} from '../core/SkillGapAnalyzer';
 import type { MigrantPerson } from '../models/MigrantPerson';
 import type { SkillRecommendation, CareerPath } from '../core/SkillGapAnalyzer';
+import type { CountryDemandDiagnostics } from '../core/RigorousData';
 
 const PRIORITY_COLORS = { crítica: '#f55700', alta: '#f5c400', media: '#00f5c4' } as const;
 const BARRIER_COLORS = { ninguna: '#00f5c4', baja: '#f5c400', media: '#f55700' } as const;
@@ -90,11 +99,44 @@ function CareerPathCard({ path, matched }: { path: CareerPath; matched: boolean 
 export function SkillGapPanel({ migrant }: Props) {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [recommendations, setRecommendations] = useState<SkillRecommendation[] | null>(null);
+  const [diagnostics, setDiagnostics] = useState<CountryDemandDiagnostics | null>(null);
+  const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false);
+  const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'gaps' | 'careers'>('gaps');
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!migrant || !selectedCountry) return;
+
+    setDiagnosticsError(null);
     setRecommendations(analyzeSkillGap(migrant, selectedCountry));
+    const fallbackDiagnostics = getSkillGapDiagnostics(migrant, selectedCountry);
+    setDiagnostics(fallbackDiagnostics);
+
+    setIsLoadingDiagnostics(true);
+    try {
+      const response = await fetch('/api/rigorous-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          country: selectedCountry,
+          demandTier: getDemandTierForCountry(selectedCountry),
+          profileAlignment: getProfileAlignment(migrant, selectedCountry),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo consultar fuentes en vivo');
+      }
+
+      const data = await response.json();
+      if (data?.diagnostics) {
+        setDiagnostics(data.diagnostics as CountryDemandDiagnostics);
+      }
+    } catch {
+      setDiagnosticsError('Mostrando estimacion local: fuentes en vivo no disponibles temporalmente.');
+    } finally {
+      setIsLoadingDiagnostics(false);
+    }
   };
 
   const careerPaths = migrant ? getCareerPaths(migrant.skills) : CAREER_PATHS.map(path => ({ path, matched: false }));
@@ -170,7 +212,12 @@ export function SkillGapPanel({ migrant }: Props) {
           <div style={{ display: 'flex', gap: '0.6rem' }}>
             <select
               value={selectedCountry}
-              onChange={e => { setSelectedCountry(e.target.value); setRecommendations(null); }}
+              onChange={e => {
+                setSelectedCountry(e.target.value);
+                setRecommendations(null);
+                setDiagnostics(null);
+                setDiagnosticsError(null);
+              }}
               style={{
                 flex: 1,
                 background: '#0a0a0a',
@@ -213,6 +260,81 @@ export function SkillGapPanel({ migrant }: Props) {
           {/* Results */}
           {recommendations !== null && (
             <>
+              {diagnostics && (
+                <div style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid #242424',
+                  borderRadius: '8px',
+                  padding: '0.8rem 0.9rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.6rem',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                    <div style={{ color: '#bbb', fontSize: '0.78rem' }}>
+                      Rigurosidad de datos · modelo <strong style={{ color: '#ddd' }}>{diagnostics.modelVersion}</strong>
+                    </div>
+                    <div style={{ color: '#888', fontSize: '0.74rem' }}>
+                      {isLoadingDiagnostics ? 'Sincronizando fuentes en vivo...' : `Actualizado: ${new Date(diagnostics.updatedAt).toLocaleDateString('es-ES')}`}
+                    </div>
+                  </div>
+
+                  {diagnosticsError && (
+                    <p style={{ color: '#8b7f6a', fontSize: '0.72rem', margin: 0 }}>
+                      {diagnosticsError}
+                    </p>
+                  )}
+
+                  <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{ color: 'var(--accent-cyan)', fontWeight: 700, fontSize: '0.88rem' }}>
+                      Score demanda: {diagnostics.score}/100
+                    </span>
+                    <span style={{ color: '#999', fontSize: '0.78rem' }}>
+                      Confianza: {diagnostics.confidenceScore}/100 ({diagnostics.confidenceLevel})
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {diagnostics.components.map(component => (
+                      <div key={component.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.6rem', fontSize: '0.74rem' }}>
+                        <span style={{ color: '#7d7d7d' }}>{component.label}</span>
+                        <span style={{ color: '#9a9a9a' }}>
+                          {component.value}/100 · peso {(component.weight * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                    {diagnostics.sources.map(source => (
+                      <a
+                        key={source.id}
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          color: '#8fcfc2',
+                          border: '1px solid #24453f',
+                          background: 'rgba(0,245,196,0.06)',
+                          borderRadius: '4px',
+                          padding: '0.12rem 0.42rem',
+                          fontSize: '0.7rem',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        {source.name}
+                      </a>
+                    ))}
+                  </div>
+
+                  {diagnostics.legalLimitations.map(limitation => (
+                    <p key={limitation} style={{ color: '#737373', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
+                      {limitation}
+                    </p>
+                  ))}
+                </div>
+              )}
+
               {recommendations.length === 0 ? (
                 <div style={{
                   background: 'rgba(0,245,196,0.05)',
