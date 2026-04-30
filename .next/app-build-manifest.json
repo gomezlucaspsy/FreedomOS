@@ -1,0 +1,36 @@
+{
+  "pages": {
+    "/_not-found/page": [
+      "static/chunks/webpack-3c03efe28b3cf5c5.js",
+      "static/chunks/4bd1b696-409494caf8c83275.js",
+      "static/chunks/39-0564424424d47b7d.js",
+      "static/chunks/main-app-a491f8f6ed6e8c70.js",
+      "static/chunks/app/_not-found/page-1b187aec4ed78523.js"
+    ],
+    "/api/hermes/route": [
+      "static/chunks/webpack-3c03efe28b3cf5c5.js",
+      "static/chunks/4bd1b696-409494caf8c83275.js",
+      "static/chunks/39-0564424424d47b7d.js",
+      "static/chunks/main-app-a491f8f6ed6e8c70.js",
+      "static/chunks/app/api/hermes/route-916948db2ebe109a.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack-3c03efe28b3cf5c5.js",
+      "static/chunks/4bd1b696-409494caf8c83275.js",
+      "static/chunks/39-0564424424d47b7d.js",
+      "static/chunks/main-app-a491f8f6ed6e8c70.js",
+      "static/css/cbb55ddf73a71600.css",
+      "static/chunks/app/layout-627caea3469aeb19.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-3c03efe28b3cf5c5.js",
+      "static/chunks/4bd1b696-409494caf8c83275.js",
+      "static/chunks/39-0564424424d47b7d.js",
+      "static/chunks/main-app-a491f8f6ed6e8c70.js",
+      "static/chunks/280273a7-6b496659f89996dc.js",
+      "static/chunks/164f4fb6-91375d5a65762548.js",
+      "static/chunks/903-63e9c85769979565.js",
+      "static/chunks/app/page-eb5c0cc6d742459b.js"
+    ]
+  }
+}

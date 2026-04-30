@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { Brain, RotateCcw } from 'lucide-react';
 import { RIASEC_QUESTIONS } from '../data/riasecQuestions';

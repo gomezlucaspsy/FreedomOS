@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { TrendingUp, Clock, Search } from 'lucide-react';
 import { analyzeSkillGap, AVAILABLE_COUNTRIES } from '../core/SkillGapAnalyzer';

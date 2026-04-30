@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, RotateCcw, ChevronDown } from 'lucide-react';
 

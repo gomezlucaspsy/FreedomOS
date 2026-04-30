@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download } from 'lucide-react';
@@ -11,22 +13,53 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+const REMIND_INSTALL_KEY = 'freedomos.pwa.remindUntil';
+
+function isStandaloneMode() {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
+}
+
+function canShowInstallPopupNow() {
+  const remindUntilRaw = localStorage.getItem(REMIND_INSTALL_KEY);
+  const remindUntil = Number(remindUntilRaw ?? 0);
+  return Number.isFinite(remindUntil) ? Date.now() >= remindUntil : true;
+}
+
 export const InstallPWA: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
+    if (isStandaloneMode()) return;
+
+    if (canShowInstallPopupNow()) {
+      const popupTimer = window.setTimeout(() => setShowInstallPrompt(true), 900);
+      return () => window.clearTimeout(popupTimer);
+    }
+  }, []);
+
+  useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Auto show the popup when the app loads, as requested by the user
-      setTimeout(() => setShowInstallPrompt(true), 1500);
+
+      if (!isStandaloneMode() && canShowInstallPopupNow()) {
+        setShowInstallPrompt(true);
+      }
+    };
+
+    const onInstalled = () => {
+      setShowInstallPrompt(false);
+      setDeferredPrompt(null);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', onInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', onInstalled);
     };
   }, []);
 
@@ -50,6 +83,12 @@ export const InstallPWA: React.FC = () => {
     setShowInstallPrompt(false);
   };
 
+  const handleRemindIn24Hours = () => {
+    const remindUntil = Date.now() + 24 * 60 * 60 * 1000;
+    localStorage.setItem(REMIND_INSTALL_KEY, String(remindUntil));
+    setShowInstallPrompt(false);
+  };
+
   return (
     <AnimatePresence>
       {showInstallPrompt && (
@@ -68,13 +107,23 @@ export const InstallPWA: React.FC = () => {
           >
             <div className="pwa-popup-title">
               <Download size={24} color="var(--accent-cyan)" />
-              Instalar FreedomOS Engine
+              Instalar FreedomOS
             </div>
             <p className="pwa-popup-desc">
-              Instala el Motor de Migración Demográfica en tu dispositivo para un rendimiento nativo, análisis offline y acceso directo.
+              Instala FreedomOS en tu dispositivo para tener acceso directo, mejor rendimiento y experiencia tipo app.
             </p>
-            <button onClick={handleInstall} className="pwa-button">
-              Instalar Aplicación
+            {deferredPrompt ? (
+              <button onClick={handleInstall} className="pwa-button">
+                Instalar aplicación
+              </button>
+            ) : (
+              <div className="pwa-install-hint" role="note">
+                Si no aparece el instalador automático en tu teléfono, abre Chrome y usa el menú ⋮, luego toca
+                "Instalar app" o "Agregar a pantalla principal".
+              </div>
+            )}
+            <button onClick={handleRemindIn24Hours} className="pwa-button-secondary">
+              Recuérdame en 24 horas
             </button>
             <button onClick={handleDismiss} className="pwa-button-secondary">
               Continuar en el navegador

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { FileJson, FileText, Shield, AlertCircle } from 'lucide-react';
 import { buildPassport, exportPassportPDF, exportPassportJSON } from '../core/PassportExporter';

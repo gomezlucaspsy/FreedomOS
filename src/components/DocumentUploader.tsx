@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useState } from 'react';
 import { Upload, User, MapPin, Briefcase, Globe } from 'lucide-react';
 import { parseDocumentToMigrant } from '../core/DocumentParser';
