@@ -1,32 +1,120 @@
 'use client';
 
 import { useState } from 'react';
-import { TrendingUp, Clock, Search } from 'lucide-react';
-import { analyzeSkillGap, AVAILABLE_COUNTRIES } from '../core/SkillGapAnalyzer';
+import { TrendingUp, Clock, Search, ChevronDown } from 'lucide-react';
+import { analyzeSkillGap, AVAILABLE_COUNTRIES, getCareerPaths, CAREER_PATHS } from '../core/SkillGapAnalyzer';
 import type { MigrantPerson } from '../models/MigrantPerson';
-import type { SkillRecommendation } from '../core/SkillGapAnalyzer';
+import type { SkillRecommendation, CareerPath } from '../core/SkillGapAnalyzer';
 
 const PRIORITY_COLORS = { crítica: '#f55700', alta: '#f5c400', media: '#00f5c4' } as const;
+const BARRIER_COLORS = { ninguna: '#00f5c4', baja: '#f5c400', media: '#f55700' } as const;
 
 interface Props {
   migrant: MigrantPerson | null;
 }
 
+function CareerPathCard({ path, matched }: { path: CareerPath; matched: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      background: matched ? 'rgba(0,245,196,0.04)' : '#0a0a0a',
+      border: `1px solid ${matched ? 'rgba(0,245,196,0.2)' : '#1f1f1f'}`,
+      borderRadius: '8px',
+      overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+          padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1rem' }}>{path.icon}</span>
+          <strong style={{ color: matched ? 'var(--accent-cyan)' : '#888', fontSize: '0.88rem' }}>{path.sector}</strong>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <span style={{
+            fontSize: '0.65rem', textTransform: 'uppercase' as const, letterSpacing: '0.06em', fontWeight: 700,
+            color: BARRIER_COLORS[path.entryBarrier],
+          }}>
+            Entrada {path.entryBarrier}
+          </span>
+          <ChevronDown size={13} color="#555" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 1rem 0.9rem', borderTop: '1px solid #1a1a1a' }}>
+          <p style={{ color: '#666', fontSize: '0.78rem', margin: '0.6rem 0 0.8rem' }}>{path.description}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            {path.steps.map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+                <div style={{
+                  minWidth: 22, height: 22, borderRadius: '50%',
+                  background: i === 0 ? 'rgba(0,245,196,0.15)' : '#1a1a1a',
+                  border: `1px solid ${i === 0 ? 'rgba(0,245,196,0.4)' : '#2a2a2a'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: i === 0 ? 'var(--accent-cyan)' : '#555', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0,
+                }}>{i + 1}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' as const }}>
+                    <span style={{ color: '#ddd', fontSize: '0.83rem', fontWeight: 600 }}>{step.role}</span>
+                    <span style={{ color: '#00f5c4', fontSize: '0.72rem', fontWeight: 600 }}>{step.salaryRange}</span>
+                    {step.timeMonths > 0 && (
+                      <span style={{ color: '#444', fontSize: '0.7rem' }}>
+                        <Clock size={10} style={{ display: 'inline', marginRight: 3 }} />+{step.timeMonths} meses
+                      </span>
+                    )}
+                  </div>
+                  {step.note && <p style={{ color: '#555', fontSize: '0.73rem', margin: '0.15rem 0 0', lineHeight: 1.5 }}>{step.note}</p>}
+                  {step.skillsToLearn.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' as const, marginTop: '0.25rem' }}>
+                      {step.skillsToLearn.map(s => (
+                        <span key={s} style={{
+                          background: '#1a1a1a', color: '#777', border: '1px solid #2a2a2a',
+                          borderRadius: '3px', padding: '0.08rem 0.35rem', fontSize: '0.67rem',
+                        }}>📚 {s}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SkillGapPanel({ migrant }: Props) {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [recommendations, setRecommendations] = useState<SkillRecommendation[] | null>(null);
+  const [activeTab, setActiveTab] = useState<'gaps' | 'careers'>('gaps');
 
   const handleAnalyze = () => {
     if (!migrant || !selectedCountry) return;
     setRecommendations(analyzeSkillGap(migrant, selectedCountry));
   };
 
+  const careerPaths = migrant ? getCareerPaths(migrant.skills) : CAREER_PATHS.map(path => ({ path, matched: false }));
+
   if (!migrant) {
     return (
-      <p style={{ color: '#555', fontSize: '0.88rem', textAlign: 'center', lineHeight: 1.7 }}>
-        Primero sube tu CV en el panel<br />
-        <strong style={{ color: '#666' }}>"Perfil Migratorio desde Documento"</strong>.
-      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <p style={{ color: '#555', fontSize: '0.88rem', textAlign: 'center', lineHeight: 1.7, margin: 0 }}>
+          Sube tu CV para ver brechas personalizadas.<br />
+          <strong style={{ color: '#666' }}>Las rutas de carrera están disponibles sin CV.</strong>
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <p style={{ color: '#555', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.08em', margin: 0 }}>
+            🗺️ Rutas de carrera realistas para inmigrantes
+          </p>
+          {careerPaths.map(({ path, matched }) => (
+            <CareerPathCard key={path.id} path={path} matched={matched} />
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -55,116 +143,153 @@ export function SkillGapPanel({ migrant }: Props) {
         )}
       </div>
 
-      {/* Country selector */}
-      <div style={{ display: 'flex', gap: '0.6rem' }}>
-        <select
-          value={selectedCountry}
-          onChange={e => { setSelectedCountry(e.target.value); setRecommendations(null); }}
-          style={{
-            flex: 1,
-            background: '#0a0a0a',
-            border: '1px solid #333',
-            borderRadius: '8px',
-            padding: '0.6rem 0.8rem',
-            color: selectedCountry ? '#fff' : '#555',
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            outline: 'none',
-          }}
-        >
-          <option value="">Selecciona el país destino...</option>
-          {AVAILABLE_COUNTRIES.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <button
-          onClick={handleAnalyze}
-          disabled={!selectedCountry}
-          style={{
-            background: selectedCountry ? 'var(--accent-cyan)' : '#1a1a1a',
-            color: selectedCountry ? '#000' : '#444',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '0.6rem 1rem',
-            fontWeight: 700,
-            cursor: selectedCountry ? 'pointer' : 'default',
-            fontSize: '0.85rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            transition: 'all 0.2s',
-          }}
-        >
-          <Search size={14} /> Analizar
-        </button>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '0.4rem', borderBottom: '1px solid #1f1f1f', paddingBottom: '0' }}>
+        {(['gaps', 'careers'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '0.4rem 0.8rem',
+              fontSize: '0.8rem', fontWeight: 600,
+              color: activeTab === tab ? 'var(--accent-cyan)' : '#555',
+              borderBottom: `2px solid ${activeTab === tab ? 'var(--accent-cyan)' : 'transparent'}`,
+              transition: 'all 0.15s',
+            }}
+          >
+            {tab === 'gaps' ? '🎯 Brechas por país' : '🗺️ Rutas de carrera'}
+          </button>
+        ))}
       </div>
 
-      {/* Results */}
-      {recommendations !== null && (
+      {/* Tab: Skill Gap */}
+      {activeTab === 'gaps' && (
         <>
-          {recommendations.length === 0 ? (
-            <div style={{
-              background: 'rgba(0,245,196,0.05)',
-              border: '1px solid rgba(0,245,196,0.2)',
-              borderRadius: '8px',
-              padding: '1rem',
-              textAlign: 'center',
-            }}>
-              <p style={{ color: 'var(--accent-cyan)', fontWeight: 700, margin: 0 }}>
-                ¡Tu perfil ya cubre las habilidades clave para {selectedCountry}!
-              </p>
-            </div>
-          ) : (
-            <>
-              <p style={{ color: '#555', fontSize: '0.8rem', margin: 0 }}>
-                {recommendations.length} habilidad{recommendations.length > 1 ? 'es' : ''} recomendada{recommendations.length > 1 ? 's' : ''} para mejorar tu empleabilidad en <strong style={{ color: '#888' }}>{selectedCountry}</strong>
-              </p>
-              {recommendations.map(rec => (
-                <div key={rec.skill} style={{
-                  background: '#0a0a0a',
-                  border: `1px solid ${PRIORITY_COLORS[rec.priority]}33`,
-                  borderRadius: '8px',
-                  padding: '0.9rem 1rem',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <TrendingUp size={13} color={PRIORITY_COLORS[rec.priority]} />
-                      <strong style={{ color: '#fff', fontSize: '0.9rem' }}>{rec.skill}</strong>
-                    </div>
-                    <span style={{
-                      color: PRIORITY_COLORS[rec.priority],
-                      fontSize: '0.68rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      fontWeight: 700,
-                    }}>
-                      {rec.priority}
-                    </span>
-                  </div>
-                  <p style={{ color: '#666', fontSize: '0.78rem', margin: '0 0 0.55rem' }}>{rec.reason}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#555', fontSize: '0.72rem' }}>
-                      <Clock size={11} />
-                      <span>~{rec.learningWeeks} {rec.learningWeeks === 1 ? 'semana' : 'semanas'}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                      {rec.platforms.map(p => (
-                        <span key={p} style={{
-                          background: '#1a1a1a',
-                          color: '#777',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '3px',
-                          padding: '0.1rem 0.4rem',
-                          fontSize: '0.7rem',
-                        }}>{p}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+          {/* Country selector */}
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <select
+              value={selectedCountry}
+              onChange={e => { setSelectedCountry(e.target.value); setRecommendations(null); }}
+              style={{
+                flex: 1,
+                background: '#0a0a0a',
+                border: '1px solid #333',
+                borderRadius: '8px',
+                padding: '0.6rem 0.8rem',
+                color: selectedCountry ? '#fff' : '#555',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="">Selecciona el país destino...</option>
+              {AVAILABLE_COUNTRIES.map(c => (
+                <option key={c} value={c}>{c}</option>
               ))}
+            </select>
+            <button
+              onClick={handleAnalyze}
+              disabled={!selectedCountry}
+              style={{
+                background: selectedCountry ? 'var(--accent-cyan)' : '#1a1a1a',
+                color: selectedCountry ? '#000' : '#444',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.6rem 1rem',
+                fontWeight: 700,
+                cursor: selectedCountry ? 'pointer' : 'default',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s',
+              }}
+            >
+              <Search size={14} /> Analizar
+            </button>
+          </div>
+
+          {/* Results */}
+          {recommendations !== null && (
+            <>
+              {recommendations.length === 0 ? (
+                <div style={{
+                  background: 'rgba(0,245,196,0.05)',
+                  border: '1px solid rgba(0,245,196,0.2)',
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  textAlign: 'center',
+                }}>
+                  <p style={{ color: 'var(--accent-cyan)', fontWeight: 700, margin: 0 }}>
+                    ¡Tu perfil ya cubre las habilidades clave para {selectedCountry}!
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p style={{ color: '#555', fontSize: '0.8rem', margin: 0 }}>
+                    {recommendations.length} habilidad{recommendations.length > 1 ? 'es' : ''} recomendada{recommendations.length > 1 ? 's' : ''} para mejorar tu empleabilidad en <strong style={{ color: '#888' }}>{selectedCountry}</strong>
+                  </p>
+                  {recommendations.map(rec => (
+                    <div key={rec.skill} style={{
+                      background: '#0a0a0a',
+                      border: `1px solid ${PRIORITY_COLORS[rec.priority]}33`,
+                      borderRadius: '8px',
+                      padding: '0.9rem 1rem',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <TrendingUp size={13} color={PRIORITY_COLORS[rec.priority]} />
+                          <strong style={{ color: '#fff', fontSize: '0.9rem' }}>{rec.skill}</strong>
+                        </div>
+                        <span style={{
+                          color: PRIORITY_COLORS[rec.priority],
+                          fontSize: '0.68rem',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                          fontWeight: 700,
+                        }}>
+                          {rec.priority}
+                        </span>
+                      </div>
+                      <p style={{ color: '#666', fontSize: '0.78rem', margin: '0 0 0.55rem' }}>{rec.reason}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#555', fontSize: '0.72rem' }}>
+                          <Clock size={11} />
+                          <span>~{rec.learningWeeks} {rec.learningWeeks === 1 ? 'semana' : 'semanas'}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                          {rec.platforms.map(p => (
+                            <span key={p} style={{
+                              background: '#1a1a1a',
+                              color: '#777',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '3px',
+                              padding: '0.1rem 0.4rem',
+                              fontSize: '0.7rem',
+                            }}>{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </>
           )}
         </>
+      )}
+
+      {/* Tab: Career Paths */}
+      {activeTab === 'careers' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <p style={{ color: '#555', fontSize: '0.78rem', margin: '0 0 0.3rem', lineHeight: 1.6 }}>
+            Rutas realistas desde el primer día en el país. Las marcadas en verde corresponden a habilidades de tu CV.
+          </p>
+          {careerPaths.map(({ path, matched }) => (
+            <CareerPathCard key={path.id} path={path} matched={matched} />
+          ))}
+        </div>
       )}
     </div>
   );
