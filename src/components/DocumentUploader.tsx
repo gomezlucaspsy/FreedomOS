@@ -11,7 +11,11 @@ const DEMAND_COLORS: Record<string, string> = {
   baja: '#f55700',
 };
 
-export function DocumentUploader() {
+interface Props {
+  onMigrantParsed?: (person: MigrantPerson) => void;
+}
+
+export function DocumentUploader({ onMigrantParsed }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +31,7 @@ export function DocumentUploader() {
       const person = await parseDocumentToMigrant(file);
       const ops = getOpportunitiesForSkills(person.skills);
       setMigrant(person);
+      onMigrantParsed?.(person);
       setOpportunities(ops);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error al procesar el documento.');
