@@ -4,16 +4,47 @@ import type { RIASECCategory, RIASECScores, BigFiveScores, PsychProfile } from '
 
 // Country RIASEC affinity (which Holland types are most valued in each country's labor market)
 const COUNTRY_RIASEC_AFFINITY: Record<string, RIASECScores> = {
+  // ── Europe ──────────────────────────────────────────────
   'Alemania':        { R: 80, I: 90, C: 85, S: 40, E: 50, A: 30 },
-  'Canadá':          { R: 60, I: 90, S: 80, E: 70, C: 55, A: 50 },
+  'Austria':         { R: 70, I: 75, C: 80, S: 55, E: 60, A: 65 },
+  'Bélgica':         { I: 75, C: 85, E: 70, S: 65, A: 55, R: 50 },
+  'Chequia':         { R: 75, I: 70, C: 75, E: 55, S: 50, A: 50 },
+  'Dinamarca':       { I: 80, S: 85, A: 65, E: 65, C: 70, R: 55 },
   'España':          { R: 40, I: 50, A: 80, S: 80, E: 70, C: 55 },
-  'Países Bajos':    { R: 60, I: 90, A: 50, S: 55, E: 70, C: 80 },
-  'Australia':       { R: 70, I: 80, A: 45, S: 75, E: 65, C: 60 },
-  'Reino Unido':     { R: 45, I: 80, A: 60, S: 70, E: 80, C: 70 },
-  'Portugal':        { R: 40, I: 60, A: 75, S: 75, E: 65, C: 55 },
-  'Emiratos Árabes': { R: 60, I: 55, A: 35, S: 40, E: 90, C: 85 },
-  'Estados Unidos':  { R: 60, I: 85, A: 65, S: 55, E: 90, C: 65 },
+  'Finlandia':       { I: 90, R: 75, C: 80, S: 65, E: 55, A: 60 },
+  'Francia':         { A: 80, S: 70, I: 65, E: 65, C: 60, R: 40 },
   'Irlanda':         { R: 50, I: 90, A: 55, S: 60, E: 75, C: 80 },
+  'Italia':          { A: 85, R: 55, S: 65, E: 65, C: 55, I: 50 },
+  'Noruega':         { R: 75, I: 80, S: 80, E: 60, C: 65, A: 50 },
+  'Países Bajos':    { R: 60, I: 90, A: 50, S: 55, E: 70, C: 80 },
+  'Polonia':         { R: 70, I: 70, C: 70, E: 60, S: 55, A: 50 },
+  'Portugal':        { R: 40, I: 60, A: 75, S: 75, E: 65, C: 55 },
+  'Reino Unido':     { R: 45, I: 80, A: 60, S: 70, E: 80, C: 70 },
+  'Suecia':          { I: 85, S: 80, C: 75, E: 60, A: 65, R: 55 },
+  'Suiza':           { I: 85, C: 90, R: 70, E: 65, S: 50, A: 45 },
+  // ── Americas ────────────────────────────────────────────
+  'Argentina':       { I: 65, A: 70, E: 65, S: 65, C: 55, R: 50 },
+  'Brasil':          { E: 75, S: 70, A: 70, I: 60, C: 55, R: 55 },
+  'Canadá':          { R: 60, I: 90, S: 80, E: 70, C: 55, A: 50 },
+  'Chile':           { I: 65, E: 70, C: 65, S: 60, R: 60, A: 55 },
+  'Colombia':        { E: 70, S: 75, A: 65, I: 55, C: 55, R: 55 },
+  'Estados Unidos':  { R: 60, I: 85, A: 65, S: 55, E: 90, C: 65 },
+  'México':          { E: 75, S: 70, A: 65, R: 60, C: 55, I: 50 },
+  'Uruguay':         { S: 75, I: 65, A: 65, E: 60, C: 60, R: 50 },
+  // ── Asia-Pacific ────────────────────────────────────────
+  'Australia':       { R: 70, I: 80, A: 45, S: 75, E: 65, C: 60 },
+  'Corea del Sur':   { I: 85, R: 80, C: 85, E: 65, A: 65, S: 45 },
+  'Japón':           { R: 80, I: 85, C: 90, E: 55, S: 50, A: 60 },
+  'Nueva Zelanda':   { S: 80, R: 70, I: 70, E: 65, A: 65, C: 60 },
+  'Singapur':        { I: 90, E: 85, C: 85, R: 55, S: 60, A: 50 },
+  'China':           { I: 85, R: 80, C: 90, E: 75, S: 45, A: 55 },
+  'Rusia':           { I: 85, R: 75, C: 80, A: 65, E: 55, S: 45 },
+  // ── Middle East ─────────────────────────────────────────
+  'Arabia Saudita':  { E: 80, C: 80, R: 75, I: 65, S: 50, A: 35 },
+  'Emiratos Árabes': { R: 60, I: 55, A: 35, S: 40, E: 90, C: 85 },
+  'Qatar':           { E: 85, C: 85, R: 70, I: 60, S: 45, A: 35 },
+  // ── Africa ──────────────────────────────────────────────
+  'Sudáfrica':       { I: 65, E: 70, S: 65, R: 60, C: 60, A: 55 },
 };
 
 function normalize(sum: number, count: number): number {
