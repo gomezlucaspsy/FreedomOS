@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileJson, FileText, Shield, AlertCircle } from 'lucide-react';
+import { FileJson, FileText, Shield, AlertCircle } from 'lucide-react';
 import { buildPassport, exportPassportPDF, exportPassportJSON } from '../core/PassportExporter';
 import { analyzeSkillGap, AVAILABLE_COUNTRIES } from '../core/SkillGapAnalyzer';
 import type { MigrantPerson } from '../models/MigrantPerson';

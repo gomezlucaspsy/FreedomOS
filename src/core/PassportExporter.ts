@@ -3,7 +3,7 @@ import type { MigrantPassport } from '../models/MigrantPassport';
 import type { MigrantPerson } from '../models/MigrantPerson';
 import type { PsychProfile } from '../models/PsychProfile';
 import type { SkillRecommendation } from './SkillGapAnalyzer';
-import { RIASEC_LABELS, BIG_FIVE_LABELS } from '../models/PsychProfile';
+import { BIG_FIVE_LABELS } from '../models/PsychProfile';
 
 // ─── Build passport object ────────────────────────────────────────────────────
 

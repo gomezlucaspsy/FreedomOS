@@ -1,5 +1,4 @@
 import type { MigrantPerson } from './MigrantPerson';
-import type { PsychProfile } from './PsychProfile';
 import type { SkillRecommendation } from '../core/SkillGapAnalyzer';
 
 export interface MigrantPassport {
