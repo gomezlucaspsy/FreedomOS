@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "next build",
     "start": "next start",
     "icons": "node scripts/generate-icons.mjs"
