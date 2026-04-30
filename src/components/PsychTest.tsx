@@ -132,7 +132,7 @@ function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => v
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function PsychTest() {
+export function PsychTest({ onProfileComplete }: { onProfileComplete?: (p: PsychProfile) => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(TOTAL).fill(0));
   const [profile, setProfile] = useState<PsychProfile | null>(null);
@@ -151,7 +151,9 @@ export function PsychTest() {
     if (step === TOTAL) {
       const riasec = scoreRIASEC(RIASEC_QUESTIONS, newAnswers.slice(0, RIASEC_COUNT));
       const bigFive = scoreBigFive(BFI10_QUESTIONS, newAnswers.slice(RIASEC_COUNT));
-      setProfile(buildPsychProfile(riasec, bigFive));
+      const built = buildPsychProfile(riasec, bigFive);
+      setProfile(built);
+      onProfileComplete?.(built);
       setStep(TOTAL + 1);
     } else {
       setStep(s => s + 1);

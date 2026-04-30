@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { InstallPWA } from './components/InstallPWA';
-import { Network, Database, Activity, FileText, Brain, TrendingUp } from 'lucide-react';
+import { Network, Database, Activity, FileText, Brain, TrendingUp, BookOpen } from 'lucide-react';
 import { OntologyGraph } from './core/OntologyGraph';
 import { runSimulation } from './sandbox/MigrationSimulator';
 import { DocumentUploader } from './components/DocumentUploader';
 import { SkillGapPanel } from './components/SkillGapPanel';
 import { PsychTest } from './components/PsychTest';
+import { PassportPanel } from './components/PassportPanel';
 import type { MigrantPerson } from './models/MigrantPerson';
+import type { PsychProfile } from './models/PsychProfile';
 import './index.css';
 
 function App() {
   const [profileData, setProfileData] = useState<any>(null);
   const [migrantPerson, setMigrantPerson] = useState<MigrantPerson | null>(null);
+  const [psychProfile, setPsychProfile] = useState<PsychProfile | null>(null);
 
   useEffect(() => {
     // Run the sandbox simulation when app mounts
@@ -115,7 +118,25 @@ function App() {
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Test RIASEC + Big Five. Descubre tu perfil vocacional, adaptabilidad y compatibilidad por país destino.
           </p>
-          <PsychTest />
+          <PsychTest onProfileComplete={setPsychProfile} />
+        </div>
+
+        <div style={{
+          background: 'var(--bg-panel)',
+          padding: '2rem',
+          borderRadius: '12px',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <BookOpen size={32} color="var(--accent-cyan)" style={{ marginBottom: '1rem' }} />
+          <h2 style={{ marginBottom: '0.5rem', color: '#fff' }}>Pasaporte Digital</h2>
+          <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Exporta tu perfil completo como PDF o JSON. Auto-emitido, no institucional.
+            Un <em>proof of self</em> que solo tú posees y controlas.
+          </p>
+          <PassportPanel migrant={migrantPerson} psychProfile={psychProfile} />
         </div>
 
         <div style={{

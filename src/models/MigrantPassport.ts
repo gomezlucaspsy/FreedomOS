@@ -1,0 +1,32 @@
+import type { MigrantPerson } from './MigrantPerson';
+import type { PsychProfile } from './PsychProfile';
+import type { SkillRecommendation } from '../core/SkillGapAnalyzer';
+
+export interface MigrantPassport {
+  version: '1.0';
+  issuedAt: string;         // ISO timestamp
+  issuedBy: 'FreedomOS';
+  holder: {
+    fullName: string;
+    originCountry: string;
+    currentCountry: string;
+    email?: string;
+    languages: string[];
+  };
+  professional: {
+    skills: string[];
+    experience: MigrantPerson['experience'];
+    education: MigrantPerson['education'];
+  };
+  psychological: {
+    hollandCode: string;          // e.g. "ISE"
+    adaptabilityScore: number;
+    integrationRisk: 'bajo' | 'medio' | 'alto';
+    topCountryMatches: { country: string; score: number }[];
+    bigFiveSummary: Record<string, number>;
+  } | null;
+  skillGapRoadmap: {
+    targetCountry: string;
+    recommendations: SkillRecommendation[];
+  } | null;
+}
