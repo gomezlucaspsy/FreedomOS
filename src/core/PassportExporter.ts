@@ -39,6 +39,10 @@ export function buildPassport(
               BIG_FIVE_LABELS[k as keyof typeof BIG_FIVE_LABELS], v
             ])
           ),
+          responseQualityLevel: psychProfile.responseQuality?.level,
+          resultConfidence: psychProfile.responseQuality?.confidence,
+          psychometricWarnings: psychProfile.responseQuality?.warnings,
+          interpretiveCautions: psychProfile.interpretiveCautions,
         }
       : null,
     skillGapRoadmap: skillGap,

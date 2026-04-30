@@ -1,6 +1,12 @@
 import type { RIASECQuestion } from '../data/riasecQuestions';
 import type { BFI10Question } from '../data/bfi10Questions';
-import type { RIASECCategory, RIASECScores, BigFiveScores, PsychProfile } from '../models/PsychProfile';
+import type {
+  RIASECCategory,
+  RIASECScores,
+  BigFiveScores,
+  PsychProfile,
+  ResponseQuality,
+} from '../models/PsychProfile';
 
 // Country RIASEC affinity (which Holland types are most valued in each country's labor market)
 const COUNTRY_RIASEC_AFFINITY: Record<string, RIASECScores> = {
@@ -51,6 +57,31 @@ function normalize(sum: number, count: number): number {
   return Math.round(((sum / count - 1) / 4) * 100);
 }
 
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function mean(values: number[]): number {
+  return values.length ? values.reduce((acc, v) => acc + v, 0) / values.length : 0;
+}
+
+function pearsonCorrelation(a: number[], b: number[]): number {
+  if (a.length !== b.length || a.length === 0) return 0;
+  const meanA = mean(a);
+  const meanB = mean(b);
+  const num = a.reduce((acc, ai, i) => acc + (ai - meanA) * (b[i] - meanB), 0);
+  const denA = Math.sqrt(a.reduce((acc, ai) => acc + Math.pow(ai - meanA, 2), 0));
+  const denB = Math.sqrt(b.reduce((acc, bi) => acc + Math.pow(bi - meanB, 2), 0));
+  if (denA === 0 || denB === 0) return 0;
+  return Math.max(-1, Math.min(1, num / (denA * denB)));
+}
+
+function euclideanDistance(a: number[], b: number[]): number {
+  if (a.length !== b.length || a.length === 0) return 0;
+  const sumSquares = a.reduce((acc, ai, i) => acc + Math.pow(ai - b[i], 2), 0);
+  return Math.sqrt(sumSquares);
+}
+
 export function scoreRIASEC(questions: RIASECQuestion[], answers: number[]): RIASECScores {
   const sums: Record<string, number> = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
   const counts: Record<string, number> = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
@@ -79,7 +110,61 @@ export function scoreBigFive(questions: BFI10Question[], answers: number[]): Big
   return { O: avg(sums.O), C: avg(sums.C), E: avg(sums.E), A: avg(sums.A), N: avg(sums.N) };
 }
 
-export function buildPsychProfile(riasec: RIASECScores, bigFive: BigFiveScores): PsychProfile {
+export function assessResponseQuality(answers: number[], responseTimesMs: number[]): ResponseQuality {
+  const answered = answers.filter(v => v >= 1 && v <= 5);
+  const completeness = Math.round((answered.length / answers.length) * 100);
+
+  const averageResponseTimeMs = Math.round(mean(responseTimesMs.filter(v => v > 0)));
+  const fastCount = responseTimesMs.filter(v => v > 0 && v < 1200).length;
+  const fastResponseRate = Math.round((fastCount / Math.max(responseTimesMs.filter(v => v > 0).length, 1)) * 100);
+
+  let maxRun = 1;
+  let currentRun = 1;
+  for (let i = 1; i < answers.length; i++) {
+    if (answers[i] === answers[i - 1]) {
+      currentRun += 1;
+      maxRun = Math.max(maxRun, currentRun);
+    } else {
+      currentRun = 1;
+    }
+  }
+  const straightLiningRate = Math.round((maxRun / Math.max(answers.length, 1)) * 100);
+
+  const acquiescenceIndex = Number((mean(answered) - 3).toFixed(2));
+
+  let penalty = 0;
+  if (completeness < 95) penalty += 30;
+  if (fastResponseRate > 40) penalty += 20;
+  if (straightLiningRate > 40) penalty += 20;
+  if (Math.abs(acquiescenceIndex) > 1.1) penalty += 15;
+  if (averageResponseTimeMs > 0 && averageResponseTimeMs < 1400) penalty += 15;
+
+  const confidence = Math.max(0, Math.min(100, 100 - penalty));
+  const level: 'alta' | 'media' | 'baja' = confidence >= 80 ? 'alta' : confidence >= 60 ? 'media' : 'baja';
+
+  const warnings: string[] = [];
+  if (fastResponseRate > 40) warnings.push('Respuestas muy rápidas detectadas; interpreta los resultados con cautela.');
+  if (straightLiningRate > 40) warnings.push('Patrón repetitivo alto (straightlining); puede reducir la precisión del perfil.');
+  if (Math.abs(acquiescenceIndex) > 1.1) warnings.push('Sesgo de aquiescencia elevado (tendencia a responder siempre alto o bajo).');
+  if (completeness < 95) warnings.push('Hay respuestas faltantes imputadas en modo neutral.');
+
+  return {
+    completeness,
+    averageResponseTimeMs,
+    fastResponseRate,
+    straightLiningRate,
+    acquiescenceIndex,
+    confidence,
+    level,
+    warnings,
+  };
+}
+
+export function buildPsychProfile(
+  riasec: RIASECScores,
+  bigFive: BigFiveScores,
+  responseQuality: ResponseQuality
+): PsychProfile {
   const topRIASEC = (Object.entries(riasec) as [RIASECCategory, number][])
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
@@ -95,14 +180,39 @@ export function buildPsychProfile(riasec: RIASECScores, bigFive: BigFiveScores):
   const integrationRisk: 'bajo' | 'medio' | 'alto' =
     riskScore < 35 ? 'bajo' : riskScore < 60 ? 'medio' : 'alto';
 
-  // Country match: dot product of person's RIASEC with each country's affinity profile
+  // Hybrid country fit: profile correlation + normalized distance + adaptability.
+  // This avoids over-relying on a single similarity index.
   const countryMatch = Object.entries(COUNTRY_RIASEC_AFFINITY).map(([country, affinity]) => {
     const keys = Object.keys(affinity) as RIASECCategory[];
-    const dot = keys.reduce((acc, k) => acc + (riasec[k] / 100) * (affinity[k] / 100), 0);
-    const base = (dot / keys.length) * 100;
-    const score = Math.min(100, Math.round(base * 0.8 + adaptabilityScore * 0.2));
+    const userVector = keys.map(k => riasec[k] / 100);
+    const marketVector = keys.map(k => affinity[k] / 100);
+
+    const corr = pearsonCorrelation(userVector, marketVector);
+    const corr01 = clamp01((corr + 1) / 2);
+
+    const maxDist = Math.sqrt(keys.length);
+    const distNorm = clamp01(euclideanDistance(userVector, marketVector) / maxDist);
+    const closeness = 1 - distNorm;
+
+    const scoreRaw = corr01 * 0.5 + closeness * 0.3 + (adaptabilityScore / 100) * 0.2;
+    const score = Math.round(clamp01(scoreRaw) * 100);
     return { country, score };
   }).sort((a, b) => b.score - a.score);
 
-  return { riasec, bigFive, topRIASEC, adaptabilityScore, integrationRisk, countryMatch };
+  const interpretiveCautions = [
+    'Instrumento de orientación: no equivale a diagnóstico clínico.',
+    'El Big Five usado es BFI-10 (escala breve), útil para tamizaje inicial.',
+  ];
+
+  return {
+    riasec,
+    bigFive,
+    topRIASEC,
+    adaptabilityScore,
+    integrationRisk,
+    countryMatch,
+    responseQuality,
+    interpretiveCautions,
+    countryMatchMethod: 'hybrid_v1',
+  };
 }

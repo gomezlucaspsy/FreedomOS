@@ -36,6 +36,17 @@ export interface BigFiveScores {
   N: number;
 }
 
+export interface ResponseQuality {
+  completeness: number; // 0-100
+  averageResponseTimeMs: number;
+  fastResponseRate: number; // 0-100
+  straightLiningRate: number; // 0-100
+  acquiescenceIndex: number; // approx -2 to +2 around neutral midpoint
+  confidence: number; // 0-100
+  level: 'alta' | 'media' | 'baja';
+  warnings: string[];
+}
+
 export interface PsychProfile {
   riasec: RIASECScores;
   bigFive: BigFiveScores;
@@ -43,4 +54,7 @@ export interface PsychProfile {
   adaptabilityScore: number; // 0-100
   integrationRisk: 'bajo' | 'medio' | 'alto';
   countryMatch: { country: string; score: number }[];
+  responseQuality?: ResponseQuality;
+  interpretiveCautions?: string[];
+  countryMatchMethod?: 'hybrid_v1';
 }

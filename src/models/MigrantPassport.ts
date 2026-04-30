@@ -23,6 +23,10 @@ export interface MigrantPassport {
     integrationRisk: 'bajo' | 'medio' | 'alto';
     topCountryMatches: { country: string; score: number }[];
     bigFiveSummary: Record<string, number>;
+    responseQualityLevel?: 'alta' | 'media' | 'baja';
+    resultConfidence?: number;
+    psychometricWarnings?: string[];
+    interpretiveCautions?: string[];
   } | null;
   skillGapRoadmap: {
     targetCountry: string;

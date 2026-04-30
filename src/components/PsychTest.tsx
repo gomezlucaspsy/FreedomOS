@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Brain, RotateCcw } from 'lucide-react';
 import { RIASEC_QUESTIONS } from '../data/riasecQuestions';
 import { BFI10_QUESTIONS } from '../data/bfi10Questions';
-import { scoreRIASEC, scoreBigFive, buildPsychProfile } from '../core/PsychScorer';
+import { scoreRIASEC, scoreBigFive, buildPsychProfile, assessResponseQuality } from '../core/PsychScorer';
 import { getPsychMemoryCycle } from '../core/PsychMemoryCycle';
 import type { PsychProfile, RIASECCategory } from '../models/PsychProfile';
 import { RIASEC_LABELS, BIG_FIVE_LABELS } from '../models/PsychProfile';
@@ -12,6 +12,7 @@ import { RIASEC_LABELS, BIG_FIVE_LABELS } from '../models/PsychProfile';
 const LIKERT = ['Muy en desacuerdo', 'En desacuerdo', 'Neutral', 'De acuerdo', 'Muy de acuerdo'];
 
 const RISK_COLORS = { bajo: '#00f5c4', medio: '#f5c400', alto: '#f55700' } as const;
+const QUALITY_COLORS = { alta: '#00f5c4', media: '#f5c400', baja: '#f55700' } as const;
 
 const RIASEC_COLORS: Record<RIASECCategory, string> = {
   R: '#ff6b35', I: '#4ecdc4', A: '#a855f7', S: '#22d3ee', E: '#f59e0b', C: '#6366f1',
@@ -33,6 +34,7 @@ function Bar({ value, color }: { value: number; color: string }) {
 // ─── Results view ─────────────────────────────────────────────────────────────
 function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => void }) {
   const memoryCycle = getPsychMemoryCycle();
+  const quality = profile.responseQuality;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -152,6 +154,39 @@ function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => v
         </div>
       </div>
 
+      <div style={{ background: '#0a0a0a', border: '1px solid #222', borderRadius: '10px', padding: '1rem' }}>
+        <p style={{ color: '#555', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
+          Calidad psicométrica del intento
+        </p>
+        {quality ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <p style={{ margin: 0, fontSize: '0.84rem', color: '#ddd' }}>
+              Confianza del resultado:{' '}
+              <strong style={{ color: QUALITY_COLORS[quality.level] }}>{quality.confidence}% ({quality.level})</strong>
+            </p>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: '#888' }}>
+              Tiempo medio por ítem: {quality.averageResponseTimeMs} ms · Respuesta rápida: {quality.fastResponseRate}% · Patrón repetitivo: {quality.straightLiningRate}%
+            </p>
+            {quality.warnings.length > 0 && quality.warnings.map((warning) => (
+              <p key={warning} style={{ margin: 0, fontSize: '0.78rem', color: '#f5c400' }}>
+                • {warning}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p style={{ margin: 0, fontSize: '0.78rem', color: '#888' }}>
+            Perfil legado sin indicadores de calidad psicométrica.
+          </p>
+        )}
+        <div style={{ marginTop: '0.75rem', borderTop: '1px solid #1f1f1f', paddingTop: '0.7rem' }}>
+          {(profile.interpretiveCautions ?? [
+            'Instrumento de orientación; no sustituye evaluación clínica profesional.',
+          ]).map(caution => (
+            <p key={caution} style={{ margin: 0, fontSize: '0.75rem', color: '#777' }}>{caution}</p>
+          ))}
+        </div>
+      </div>
+
       <button onClick={onReset} style={{
         background: 'transparent',
         color: '#555',
@@ -175,6 +210,8 @@ function Results({ profile, onReset }: { profile: PsychProfile; onReset: () => v
 export function PsychTest({ initialProfile = null, onProfileComplete, onProfileReset }: { initialProfile?: PsychProfile | null; onProfileComplete?: (p: PsychProfile) => void; onProfileReset?: () => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(TOTAL).fill(0));
+  const [responseTimesMs, setResponseTimesMs] = useState<number[]>(Array(TOTAL).fill(0));
+  const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
   const [profile, setProfile] = useState<PsychProfile | null>(initialProfile);
 
   const isIntro = step === 0;
@@ -186,16 +223,21 @@ export function PsychTest({ initialProfile = null, onProfileComplete, onProfileR
 
   const handleAnswer = (value: number) => {
     const newAnswers = [...answers];
+    const newTimes = [...responseTimesMs];
     newAnswers[questionIndex] = value;
+    newTimes[questionIndex] = Math.max(0, Date.now() - questionStartedAt);
     setAnswers(newAnswers);
+    setResponseTimesMs(newTimes);
     if (step === TOTAL) {
       const riasec = scoreRIASEC(RIASEC_QUESTIONS, newAnswers.slice(0, RIASEC_COUNT));
       const bigFive = scoreBigFive(BFI10_QUESTIONS, newAnswers.slice(RIASEC_COUNT));
-      const built = buildPsychProfile(riasec, bigFive);
+      const quality = assessResponseQuality(newAnswers, newTimes);
+      const built = buildPsychProfile(riasec, bigFive, quality);
       setProfile(built);
       onProfileComplete?.(built);
       setStep(TOTAL + 1);
     } else {
+      setQuestionStartedAt(Date.now());
       setStep(s => s + 1);
     }
   };
@@ -203,6 +245,8 @@ export function PsychTest({ initialProfile = null, onProfileComplete, onProfileR
   const reset = () => {
     setStep(0);
     setAnswers(Array(TOTAL).fill(0));
+    setResponseTimesMs(Array(TOTAL).fill(0));
+    setQuestionStartedAt(Date.now());
     setProfile(null);
     onProfileReset?.();
   };
@@ -217,7 +261,10 @@ export function PsychTest({ initialProfile = null, onProfileComplete, onProfileR
         <p style={{ color: '#555', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
           RIASEC (intereses vocacionales) + Big Five (personalidad)
         </p>
-        <button onClick={() => setStep(1)} style={{
+        <p style={{ color: '#666', fontSize: '0.74rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+          Uso orientativo y educativo. No constituye diagnóstico clínico ni reemplaza evaluación profesional.
+        </p>
+        <button onClick={() => { setQuestionStartedAt(Date.now()); setStep(1); }} style={{
           background: 'var(--accent-cyan)', color: '#000', border: 'none',
           borderRadius: '8px', padding: '0.7rem 2.2rem',
           fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem',
