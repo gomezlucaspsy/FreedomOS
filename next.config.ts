@@ -14,6 +14,7 @@ const withPWAConfig = withPWA({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  distDir: 'dist',
 };
 
 export default withPWAConfig(nextConfig);
