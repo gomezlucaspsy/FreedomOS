@@ -210,11 +210,12 @@ function Results({ session, onReset }: { session: PsychScreeningSession; onReset
 }
 
 export function PsychTest() {
-  const [step, setStep] = useState(0);
+  const latestSession = getScreeningSessions()[0] ?? null;
+  const [step, setStep] = useState(latestSession ? VALIDATED_COUNTS.total + 1 : 0);
   const [answers, setAnswers] = useState<number[]>(Array(VALIDATED_COUNTS.total).fill(0));
   const [responseTimesMs, setResponseTimesMs] = useState<number[]>(Array(VALIDATED_COUNTS.total).fill(0));
   const [questionStartedAt, setQuestionStartedAt] = useState<number>(Date.now());
-  const [session, setSession] = useState<PsychScreeningSession | null>(null);
+  const [session, setSession] = useState<PsychScreeningSession | null>(latestSession);
 
   const isIntro = step === 0;
   const isResults = step === VALIDATED_COUNTS.total + 1;

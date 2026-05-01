@@ -146,7 +146,7 @@ export function SkillGapPanel({ migrant }: Props) {
 
   const careerPaths = migrant ? getCareerPaths(migrant.skills) : CAREER_PATHS.map(path => ({ path, matched: false }));
   const mobilityPack = selectedCountry ? getCountryMobilityPack(selectedCountry) : null;
-  const recommendedPortals = mobilityPack ? getRecommendedPortalsForProfile(mobilityPack, migrant.skills, 10) : [];
+  const recommendedPortals = mobilityPack && migrant ? getRecommendedPortalsForProfile(mobilityPack, migrant.skills, 10) : [];
 
   if (!migrant) {
     return (
