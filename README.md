@@ -9,6 +9,7 @@ FreedomOS es una plataforma de autoevaluacion personal orientada a personas migr
 ## Metodologia y datos verificables
 
 - Guia rigurosa de datos: [docs/RIGOROUS_DATA_GUIDE.md](docs/RIGOROUS_DATA_GUIDE.md)
+- Guia de screening psicologico: [docs/PSYCH_SCREENING_GUIDE.md](docs/PSYCH_SCREENING_GUIDE.md)
 - Esta guia documenta fuentes publicas, criterios de auditabilidad, limites metodologicos y una hoja de ruta para reemplazar estimaciones opacas por evidencia verificable.
 - Integracion live implementada en API interna: [app/api/rigorous-data/route.ts](app/api/rigorous-data/route.ts)
 
@@ -22,6 +23,7 @@ FreedomOS es una plataforma de autoevaluacion personal orientada a personas migr
 
 - Opcional: BLS_API_KEY (mejora cuota y estabilidad de BLS).
 - Si no esta definida, BLS se consulta en modo publico.
+- Hermes (Anthropic): usar ANTHROPIC_KEY o ANTHROPIC_API_KEY.
 
 ## Descripcion detallada
 

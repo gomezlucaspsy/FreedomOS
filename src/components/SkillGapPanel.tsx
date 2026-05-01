@@ -11,6 +11,11 @@ import {
   getDemandTierForCountry,
   getProfileAlignment,
 } from '../core/SkillGapAnalyzer';
+import {
+  getCountryMobilityPack,
+  getRecommendedPortalsForProfile,
+  getVisaTypeLabel,
+} from '../core/CountryMobilityMap';
 import type { MigrantPerson } from '../models/MigrantPerson';
 import type { SkillRecommendation, CareerPath } from '../core/SkillGapAnalyzer';
 import type { CountryDemandDiagnostics } from '../core/RigorousData';
@@ -140,6 +145,8 @@ export function SkillGapPanel({ migrant }: Props) {
   };
 
   const careerPaths = migrant ? getCareerPaths(migrant.skills) : CAREER_PATHS.map(path => ({ path, matched: false }));
+  const mobilityPack = selectedCountry ? getCountryMobilityPack(selectedCountry) : null;
+  const recommendedPortals = mobilityPack ? getRecommendedPortalsForProfile(mobilityPack, migrant.skills, 10) : [];
 
   if (!migrant) {
     return (
@@ -396,6 +403,141 @@ export function SkillGapPanel({ migrant }: Props) {
                     </div>
                   ))}
                 </>
+              )}
+
+              {mobilityPack && (
+                <div style={{
+                  marginTop: '0.3rem',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid #232323',
+                  borderRadius: '8px',
+                  padding: '0.9rem 1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.85rem',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <p style={{ color: '#d6d6d6', fontSize: '0.8rem', margin: 0, fontWeight: 700 }}>
+                      Rutas migratorias y portales recomendados para {mobilityPack.country}
+                    </p>
+                    <span style={{ color: '#777', fontSize: '0.72rem' }}>
+                      Verifica siempre requisitos vigentes en fuentes oficiales.
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {mobilityPack.visaTracks.map(track => (
+                      <div key={track.id} style={{
+                        background: '#0a0a0a',
+                        border: '1px solid #1f1f1f',
+                        borderRadius: '8px',
+                        padding: '0.7rem 0.8rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.45rem',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <strong style={{ color: '#e3e3e3', fontSize: '0.82rem' }}>{track.title}</strong>
+                          <span style={{
+                            color: '#84d6c9',
+                            border: '1px solid #24453f',
+                            background: 'rgba(0,245,196,0.08)',
+                            borderRadius: '4px',
+                            padding: '0.1rem 0.42rem',
+                            fontSize: '0.68rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            fontWeight: 700,
+                          }}>
+                            {getVisaTypeLabel(track.type)}
+                          </span>
+                        </div>
+
+                        <p style={{ color: '#8d8d8d', fontSize: '0.75rem', margin: 0, lineHeight: 1.5 }}>
+                          {track.summary}
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' as const }}>
+                          {track.requiredSkills.map(skill => (
+                            <span key={skill} style={{
+                              background: '#171717',
+                              color: '#8ccbc0',
+                              border: '1px solid #243f3a',
+                              borderRadius: '3px',
+                              padding: '0.08rem 0.35rem',
+                              fontSize: '0.67rem',
+                            }}>
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' as const }}>
+                          <a
+                            href={track.officialUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              color: '#8fcfc2',
+                              border: '1px solid #24453f',
+                              background: 'rgba(0,245,196,0.06)',
+                              borderRadius: '4px',
+                              padding: '0.12rem 0.45rem',
+                              fontSize: '0.7rem',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            Fuente oficial
+                          </a>
+                          <span style={{ color: '#6e6e6e', fontSize: '0.69rem' }}>{track.caution}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <p style={{ color: '#bdbdbd', fontSize: '0.77rem', margin: 0, fontWeight: 600 }}>
+                      Portales recomendados para postular
+                    </p>
+                    {recommendedPortals.length === 0 ? (
+                      <p style={{ color: '#666', fontSize: '0.73rem', margin: 0 }}>
+                        Sin portales priorizados para este perfil por ahora.
+                      </p>
+                    ) : (
+                      <div style={{ display: 'grid', gap: '0.45rem' }}>
+                        {recommendedPortals.map(portal => (
+                          <a
+                            key={portal.id}
+                            href={portal.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              gap: '0.6rem',
+                              alignItems: 'center',
+                              background: '#0a0a0a',
+                              border: '1px solid #1f1f1f',
+                              borderRadius: '6px',
+                              padding: '0.48rem 0.6rem',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            <span style={{ color: '#dadada', fontSize: '0.76rem' }}>{portal.name}</span>
+                            <span style={{
+                              color: portal.category === 'government' ? '#a8d8c8' : '#888',
+                              fontSize: '0.67rem',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                            }}>
+                              {portal.category}
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </>
           )}

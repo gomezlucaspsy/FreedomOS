@@ -57,7 +57,13 @@ async function callHermes(messages: Message[]): Promise<string> {
   });
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as any)?.error?.message ?? `Error ${res.status}`);
+  if (!res.ok) {
+    const message = (data as any)?.error?.message ?? `Error ${res.status}`;
+    if (/not configured|ANTHROPIC_KEY|ANTHROPIC_API_KEY/i.test(message)) {
+      throw new Error('Hermes no esta disponible temporalmente por configuracion del servidor. Intenta de nuevo en unos minutos.');
+    }
+    throw new Error(message);
+  }
   return (data as any)?.content?.[0]?.text?.trim() ?? 'Sin respuesta.';
 }
 

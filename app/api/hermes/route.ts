@@ -2,11 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
+function getAnthropicApiKey(): string | undefined {
+  return (
+    process.env.ANTHROPIC_KEY?.trim() ||
+    process.env.ANTHROPIC_API_KEY?.trim() ||
+    process.env.CLAUDE_API_KEY?.trim()
+  );
+}
+
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_KEY;
+  const apiKey = getAnthropicApiKey();
   if (!apiKey) {
     return NextResponse.json(
-      { error: { message: 'ANTHROPIC_KEY is not configured' } },
+      {
+        error: {
+          message:
+            'Hermes AI is not configured. Set ANTHROPIC_KEY or ANTHROPIC_API_KEY on the server and restart the app.',
+        },
+      },
       { status: 500 }
     );
   }
