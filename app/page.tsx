@@ -8,6 +8,7 @@ import { SkillGapPanel } from '../src/components/SkillGapPanel';
 import { PsychTest } from '../src/components/PsychTest';
 import { PassportPanel } from '../src/components/PassportPanel';
 import { HermesChat } from '../src/components/HermesChat';
+import { JobMatchesPanel } from '../src/components/JobMatchesPanel';
 import { getPsychMemoryCycle } from '../src/core/PsychMemoryCycle';
 import { getScreeningSessions } from '../src/core/ScreeningSessionStore';
 import type { MigrantPerson } from '../src/models/MigrantPerson';
@@ -76,6 +77,15 @@ export default function Home() {
             psychProfile={psychProfile}
             psychScreeningDone={psychScreeningDone}
           />
+        </div>
+
+        <div className="feature-card">
+          <TrendingUp size={32} color="var(--accent-cyan)" className="feature-icon" />
+          <h2>Matching de Vacantes</h2>
+          <p>
+            Busca vacantes en tiempo real, compara fit por skills/idioma/seniority y detecta brechas para aplicar mejor.
+          </p>
+          <JobMatchesPanel migrant={migrantPerson} />
         </div>
       </main>
     </div>
