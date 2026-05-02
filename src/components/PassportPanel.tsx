@@ -16,21 +16,24 @@ import type { PsychProfile } from '../models/PsychProfile';
 interface Props {
   migrant: MigrantPerson | null;
   psychProfile: PsychProfile | null;
+  psychScreeningDone: boolean;
 }
 
-export function PassportPanel({ migrant, psychProfile }: Props) {
+export function PassportPanel({ migrant, psychProfile, psychScreeningDone }: Props) {
   const [targetCountry, setTargetCountry] = useState('');
   const [exporting, setExporting] = useState(false);
 
   const missingCV = !migrant;
-  const missingPsych = !psychProfile;
+  const missingPsych = !psychProfile && !psychScreeningDone;
   const missingCountry = !targetCountry;
 
   const handleExport = async (format: 'pdf' | 'json') => {
     if (!migrant) return;
+    const currentMigrant = migrant;
+
     setExporting(true);
     try {
-      let liveDiagnostics = targetCountry ? getSkillGapDiagnostics(migrant, targetCountry) : undefined;
+      let liveDiagnostics = targetCountry ? getSkillGapDiagnostics(currentMigrant, targetCountry) : undefined;
 
       if (targetCountry) {
         try {
@@ -40,7 +43,7 @@ export function PassportPanel({ migrant, psychProfile }: Props) {
             body: JSON.stringify({
               country: targetCountry,
               demandTier: getDemandTierForCountry(targetCountry),
-              profileAlignment: getProfileAlignment(migrant, targetCountry),
+              profileAlignment: getProfileAlignment(currentMigrant, targetCountry),
             }),
           });
 
@@ -58,11 +61,11 @@ export function PassportPanel({ migrant, psychProfile }: Props) {
       const skillGap = targetCountry
         ? {
             targetCountry,
-            recommendations: analyzeSkillGap(migrant, targetCountry),
+            recommendations: analyzeSkillGap(currentMigrant, targetCountry),
             diagnostics: liveDiagnostics,
           }
         : null;
-      const passport = buildPassport(migrant, psychProfile, skillGap);
+      const passport = buildPassport(currentMigrant, psychProfile, skillGap);
       if (format === 'pdf') exportPassportPDF(passport);
       else exportPassportJSON(passport);
     } finally {

@@ -209,7 +209,11 @@ function Results({ session, onReset }: { session: PsychScreeningSession; onReset
   );
 }
 
-export function PsychTest() {
+interface PsychTestProps {
+  onScreeningSaved?: (session: PsychScreeningSession) => void;
+}
+
+export function PsychTest({ onScreeningSaved }: PsychTestProps) {
   const latestSession = getScreeningSessions()[0] ?? null;
   const [step, setStep] = useState(latestSession ? VALIDATED_COUNTS.total + 1 : 0);
   const [answers, setAnswers] = useState<number[]>(Array(VALIDATED_COUNTS.total).fill(0));
@@ -264,6 +268,7 @@ export function PsychTest() {
 
       const stored = storeScreeningSession(newSession);
       setSession(stored);
+      onScreeningSaved?.(stored);
       setStep(VALIDATED_COUNTS.total + 1);
     } else {
       setQuestionStartedAt(Date.now());

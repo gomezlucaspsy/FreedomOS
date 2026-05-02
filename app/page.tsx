@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { InstallPWA } from '../src/components/InstallPWA';
 import { Activity, FileText, Brain, TrendingUp, BookOpen } from 'lucide-react';
 import { DocumentUploader } from '../src/components/DocumentUploader';
@@ -9,12 +9,18 @@ import { PsychTest } from '../src/components/PsychTest';
 import { PassportPanel } from '../src/components/PassportPanel';
 import { HermesChat } from '../src/components/HermesChat';
 import { getPsychMemoryCycle } from '../src/core/PsychMemoryCycle';
+import { getScreeningSessions } from '../src/core/ScreeningSessionStore';
 import type { MigrantPerson } from '../src/models/MigrantPerson';
 import type { PsychProfile } from '../src/models/PsychProfile';
 
 export default function Home() {
   const [migrantPerson, setMigrantPerson] = useState<MigrantPerson | null>(null);
+  const [psychScreeningDone, setPsychScreeningDone] = useState(false);
   const psychProfile: PsychProfile | null = getPsychMemoryCycle().activeEntry?.profile ?? null;
+
+  useEffect(() => {
+    setPsychScreeningDone(getScreeningSessions().length > 0);
+  }, []);
 
   return (
     <div className="app-container">
@@ -56,7 +62,7 @@ export default function Home() {
           <p>
             Evaluación breve para orientar bienestar, resiliencia y soporte social en contexto migratorio.
           </p>
-          <PsychTest />
+          <PsychTest onScreeningSaved={() => setPsychScreeningDone(true)} />
         </div>
 
         <div className="feature-card">
@@ -65,7 +71,11 @@ export default function Home() {
           <p>
             Exporta tu perfil completo en PDF o JSON para uso personal, con trazabilidad y control del usuario.
           </p>
-          <PassportPanel migrant={migrantPerson} psychProfile={psychProfile} />
+          <PassportPanel
+            migrant={migrantPerson}
+            psychProfile={psychProfile}
+            psychScreeningDone={psychScreeningDone}
+          />
         </div>
       </main>
     </div>
