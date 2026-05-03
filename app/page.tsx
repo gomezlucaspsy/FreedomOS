@@ -1,14 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { InstallPWA } from '../src/components/InstallPWA';
-import { Activity, FileText, Brain, TrendingUp, BookOpen } from 'lucide-react';
+import { Activity, FileText, Brain, TrendingUp, BookOpen, Route } from 'lucide-react';
 import { DocumentUploader } from '../src/components/DocumentUploader';
 import { SkillGapPanel } from '../src/components/SkillGapPanel';
 import { PsychTest } from '../src/components/PsychTest';
 import { PassportPanel } from '../src/components/PassportPanel';
 import { HermesChat } from '../src/components/HermesChat';
 import { JobMatchesPanel } from '../src/components/JobMatchesPanel';
+import { getStoredMigrantProfile, storeMigrantProfile } from '../src/core/MigrantProfileStore';
 import { getPsychMemoryCycle } from '../src/core/PsychMemoryCycle';
 import { getScreeningSessions } from '../src/core/ScreeningSessionStore';
 import type { MigrantPerson } from '../src/models/MigrantPerson';
@@ -17,10 +19,23 @@ import type { PsychProfile } from '../src/models/PsychProfile';
 export default function Home() {
   const [migrantPerson, setMigrantPerson] = useState<MigrantPerson | null>(null);
   const [psychScreeningDone, setPsychScreeningDone] = useState(false);
+  const [screeningSessionsCount, setScreeningSessionsCount] = useState(0);
   const psychProfile: PsychProfile | null = getPsychMemoryCycle().activeEntry?.profile ?? null;
 
+  const handleScreeningSaved = () => {
+    const sessions = getScreeningSessions();
+    setPsychScreeningDone(sessions.length > 0);
+    setScreeningSessionsCount(sessions.length);
+  };
+
   useEffect(() => {
-    setPsychScreeningDone(getScreeningSessions().length > 0);
+    const sessions = getScreeningSessions();
+    const storedMigrant = getStoredMigrantProfile();
+    if (storedMigrant) {
+      setMigrantPerson(storedMigrant);
+    }
+    setPsychScreeningDone(sessions.length > 0);
+    setScreeningSessionsCount(sessions.length);
   }, []);
 
   return (
@@ -45,7 +60,12 @@ export default function Home() {
           <p>
             Sube tu CV o carta de presentación (.docx / .txt) para generar tu perfil migratorio y ver en qué países hay demanda de tus habilidades.
           </p>
-          <DocumentUploader onMigrantParsed={setMigrantPerson} />
+          <DocumentUploader
+            onMigrantParsed={(person) => {
+              setMigrantPerson(person);
+              storeMigrantProfile(person);
+            }}
+          />
         </div>
 
         <div className="feature-card">
@@ -63,7 +83,7 @@ export default function Home() {
           <p>
             Evaluación breve para orientar bienestar, resiliencia y soporte social en contexto migratorio.
           </p>
-          <PsychTest onScreeningSaved={() => setPsychScreeningDone(true)} />
+          <PsychTest onScreeningSaved={handleScreeningSaved} />
         </div>
 
         <div className="feature-card">
@@ -86,6 +106,17 @@ export default function Home() {
             Busca vacantes en tiempo real, compara fit por skills/idioma/seniority y detecta brechas para aplicar mejor.
           </p>
           <JobMatchesPanel migrant={migrantPerson} />
+        </div>
+
+        <div className="feature-card feature-card-route">
+          <Route size={32} color="var(--accent-cyan)" className="feature-icon" />
+          <h2>Ruta de Ingeniería Social</h2>
+          <p>
+            Abre la pantalla completa con el Sankey de casos exitosos basado en educación, experiencia laboral, habilidades e indicadores de screening.
+          </p>
+          <Link href="/ingenieria-social" className="route-link-button">
+            Abrir pantalla completa
+          </Link>
         </div>
       </main>
     </div>
