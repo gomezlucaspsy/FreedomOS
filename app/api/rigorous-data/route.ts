@@ -91,6 +91,21 @@ const COUNTRY_ALPHA3: Record<string, string> = {
   'Emiratos Árabes': 'ARE',
   Qatar: 'QAT',
   'Sudáfrica': 'ZAF',
+  Chipre: 'CYP',
+  Croacia: 'HRV',
+  Estonia: 'EST',
+  Georgia: 'GEO',
+  Grecia: 'GRC',
+  'Hungría': 'HUN',
+  Luxemburgo: 'LUX',
+  Malta: 'MLT',
+  'Rumanía': 'ROU',
+  'Costa Rica': 'CRI',
+  'Panamá': 'PAN',
+  Paraguay: 'PRY',
+  'Perú': 'PER',
+  Malasia: 'MYS',
+  Tailandia: 'THA',
 };
 
 async function fetchBlsUnemployment(): Promise<LaborSignal | null> {

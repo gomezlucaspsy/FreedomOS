@@ -99,6 +99,51 @@ const SKILL_DEMAND: Record<string, { skills: string[]; reason: string; demandLev
     demandLevel: 'alta',
     reason: 'Salarios más altos de Europa en finanzas, pharma, hostelería de lujo y cuidados.',
   },
+  'Chipre': {
+    skills: ['Finanzas', 'Contabilidad', 'SQL', 'Inglés', 'Python', 'Turismo', 'Cocina profesional', 'Atención al cliente', 'Marketing'],
+    demandLevel: 'media',
+    reason: 'Hub de fintech, forex y shipping con régimen fiscal favorable (50% exento sobre salarios altos).',
+  },
+  'Croacia': {
+    skills: ['Turismo', 'Cocina profesional', 'Atención al cliente', 'Albañilería', 'Conducción profesional', 'Java', 'SQL'],
+    demandLevel: 'media',
+    reason: 'Escasez estructural en turismo y construcción; cupos de permisos de trabajo en aumento.',
+  },
+  'Estonia': {
+    skills: ['TypeScript', 'React', 'Python', 'Docker', 'Kubernetes', 'SQL', 'Git'],
+    demandLevel: 'media',
+    reason: 'Ecosistema de startups (Wise, Bolt, Skype) y gobierno digital; e-Residency.',
+  },
+  'Georgia': {
+    skills: ['React', 'Python', 'SQL', 'Marketing', 'Turismo', 'Atención al cliente', 'Diseño'],
+    demandLevel: 'baja',
+    reason: 'Hub de nómadas digitales: 1% de impuesto para empresarios individuales y entrada sin visa por 1 año.',
+  },
+  'Grecia': {
+    skills: ['Turismo', 'Cocina profesional', 'Atención al cliente', 'Agricultura y campo', 'Python', 'SQL', 'Logística de almacén'],
+    demandLevel: 'media',
+    reason: 'Turismo récord y escasez de trabajadores de temporada; incentivo 50% para nuevos residentes.',
+  },
+  'Hungría': {
+    skills: ['Java', 'SQL', 'Python', 'Manufactura', 'Logística de almacén', 'Conducción profesional', 'Excel'],
+    demandLevel: 'media',
+    reason: 'Plantas automotrices y de baterías (BMW, CATL, BYD) con demanda de técnicos y operarios.',
+  },
+  'Luxemburgo': {
+    skills: ['Finanzas', 'Contabilidad', 'SQL', 'Python', 'Power BI', 'Francés', 'Alemán', 'Enfermería', 'Albañilería'],
+    demandLevel: 'alta',
+    reason: 'Centro financiero europeo con el salario mínimo más alto de la UE y escasez en finanzas y salud.',
+  },
+  'Malta': {
+    skills: ['SQL', 'Python', 'Finanzas', 'Contabilidad', 'Cocina profesional', 'Turismo', 'Atención al cliente', 'Cuidado de personas mayores'],
+    demandLevel: 'media',
+    reason: 'iGaming, fintech y turismo en inglés; alta demanda de extranjeros.',
+  },
+  'Rumanía': {
+    skills: ['Java', 'Python', 'SQL', 'C#', 'Manufactura', 'Albañilería', 'Conducción profesional'],
+    demandLevel: 'media',
+    reason: 'Hub de outsourcing IT y construcción con déficit de mano de obra por emigración.',
+  },
   // ── Americas ────────────────────────────────────────────────────────────────
   'Argentina': {
     skills: ['React', 'Python', 'Node.js', 'Diseño', 'Marketing', 'Data Science', 'Java', 'SQL', 'Atención al cliente', 'Logística de almacén'],
@@ -140,6 +185,26 @@ const SKILL_DEMAND: Record<string, { skills: string[]; reason: string; demandLev
     demandLevel: 'media',
     reason: 'País más digitalizado de Latam; alta calidad de vida y estabilidad institucional.',
   },
+  'Costa Rica': {
+    skills: ['Inglés', 'Python', 'SQL', 'Java', 'Atención al cliente', 'Turismo', 'Contabilidad'],
+    demandLevel: 'media',
+    reason: 'Centros de servicios compartidos (Intel, Amazon, P&G) y dispositivos médicos; ley de nómadas digitales.',
+  },
+  'Panamá': {
+    skills: ['Logística', 'Finanzas', 'Contabilidad', 'SQL', 'Atención al cliente', 'Logística de almacén', 'Turismo'],
+    demandLevel: 'media',
+    reason: 'Hub logístico del canal y sedes regionales de multinacionales; tributación territorial.',
+  },
+  'Paraguay': {
+    skills: ['Agricultura y campo', 'Logística de almacén', 'Contabilidad', 'SQL', 'Atención al cliente', 'Conducción profesional'],
+    demandLevel: 'baja',
+    reason: 'Agroindustria en expansión, impuestos bajos (10%) y residencia accesible.',
+  },
+  'Perú': {
+    skills: ['SQL', 'Python', 'Ingeniería', 'Contabilidad', 'Agricultura y campo', 'Logística de almacén', 'Atención al cliente'],
+    demandLevel: 'media',
+    reason: 'Minería, agroexportación y un sector fintech creciente en Lima.',
+  },
   // ── Asia-Pacific ────────────────────────────────────────────────────────────
   'Australia': {
     skills: ['Enfermería', 'Medicina', 'Ingeniería', 'Python', 'Java', 'SQL', 'AWS', 'GCP', 'Arquitectura', 'Contabilidad', 'Agricultura y campo', 'Cuidado de personas mayores', 'Albañilería', 'Conducción profesional'],
@@ -175,6 +240,16 @@ const SKILL_DEMAND: Record<string, { skills: string[]; reason: string; demandLev
     skills: ['Python', 'C++', 'Java', 'Machine Learning', 'Data Science', 'SQL', 'Matemática', 'Ingeniería', 'Ruso', 'Linux'],
     demandLevel: 'media',
     reason: 'Fuerte tradición en matemática aplicada, ciberseguridad e ingeniería. Ecosistema tech local con Yandex, Sber y 1C.',
+  },
+  'Malasia': {
+    skills: ['Python', 'SQL', 'Java', 'Manufactura', 'Logística de almacén', 'Atención al cliente', 'Inglés'],
+    demandLevel: 'media',
+    reason: 'Semiconductores (Penang), centros de datos y servicios globales; costo de vida bajo.',
+  },
+  'Tailandia': {
+    skills: ['Turismo', 'Cocina profesional', 'Atención al cliente', 'Marketing', 'React', 'Python', 'Inglés'],
+    demandLevel: 'baja',
+    reason: 'Turismo y enseñanza de inglés; visas LTR y DTV para profesionales remotos.',
   },
   // ── Middle East ─────────────────────────────────────────────────────────────
   'Arabia Saudita': {

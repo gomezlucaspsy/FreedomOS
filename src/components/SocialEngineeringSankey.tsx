@@ -18,6 +18,84 @@ function r(v: number) {
   return Math.round(v);
 }
 
+interface FlowData {
+  nodes: { id: string }[];
+  links: { source: string; target: string; value: number }[];
+}
+
+// Bandas translúcidas coloreadas por su nodo de origen, nodos finos con separación amplia y
+// etiquetas con contorno para que el diagrama no se vea como un bloque sólido.
+function FlowChart({ data, colorMap, ariaLabel }: { data: FlowData; colorMap: Record<string, string>; ariaLabel: string }) {
+  return (
+    <div className="social-sankey-chart-wrap">
+      <div className="social-sankey-canvas" role="img" aria-label={ariaLabel}>
+        <ResponsiveSankey
+          data={data}
+          margin={{ top: 24, right: 200, bottom: 24, left: 190 }}
+          align="justify"
+          sort="input"
+          colors={(node: any) => colorMap[node.id] ?? '#898781'}
+          nodeOpacity={1}
+          nodeHoverOthersOpacity={0.3}
+          nodeThickness={14}
+          nodeSpacing={30}
+          nodeInnerPadding={0}
+          nodeBorderWidth={0}
+          nodeBorderRadius={3}
+          linkOpacity={0.38}
+          linkHoverOpacity={0.75}
+          linkHoverOthersOpacity={0.06}
+          linkContract={1}
+          linkBlendMode="normal"
+          enableLinkGradient={false}
+          label={(node: any) => `${node.id} · ${Math.round(node.value)}`}
+          labelPosition="outside"
+          labelOrientation="horizontal"
+          labelPadding={10}
+          labelTextColor="#e8f1f5"
+          nodeTooltip={({ node }: any) => (
+            <div className="sankey-tooltip">
+              <strong>{String(node.id)}</strong>
+              <span>{Math.round(node.value)} casos por 100</span>
+            </div>
+          )}
+          linkTooltip={({ link }: any) => (
+            <div className="sankey-tooltip">
+              <strong>{String(link.source.id)} &rarr; {String(link.target.id)}</strong>
+              <span>{Math.round(link.value)} casos por 100</span>
+            </div>
+          )}
+          theme={{
+            labels: {
+              text: {
+                fontSize: 12,
+                fontWeight: 600,
+                fill: '#e8f1f5',
+                outlineWidth: 3,
+                outlineColor: '#07121b',
+                outlineOpacity: 1,
+              },
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function FlowLegend({ items }: { items: [string, string][] }) {
+  return (
+    <>
+      <ul className="social-sankey-legend">
+        {items.map(([label, color]) => (
+          <li key={label}><i style={{ background: color }} />{label}</li>
+        ))}
+      </ul>
+      <p className="social-sankey-scroll-hint">Desliza horizontalmente para ver el diagrama completo.</p>
+    </>
+  );
+}
+
 export function SocialEngineeringSankey({
   migrantPerson,
   psychProfile,
@@ -142,47 +220,45 @@ export function SocialEngineeringSankey({
     ],
     links: [
       // Total → Education
-      { source: 'Total casos',  target: 'Secundaria',       value: secondary, startColor: '#ffffff', endColor: '#8fd0ff' },
-      { source: 'Total casos',  target: 'Universidad',      value: university, startColor: '#ffffff', endColor: '#57b8ff' },
-      { source: 'Total casos',  target: 'Posgrado',         value: postgrad, startColor: '#ffffff', endColor: '#2f8eff' },
+      { source: 'Total casos',  target: 'Secundaria',       value: secondary },
+      { source: 'Total casos',  target: 'Universidad',      value: university },
+      { source: 'Total casos',  target: 'Posgrado',         value: postgrad },
       // Education → Career decision
-      { source: 'Secundaria',   target: 'Mismo campo',      value: secSame, startColor: '#f7fbff', endColor: '#ffd84a' },
-      { source: 'Secundaria',   target: 'Cambio de carrera',value: secCambio, startColor: '#f7fbff', endColor: '#ffad33' },
-      { source: 'Secundaria',   target: 'Emprendimiento',   value: secEmp, startColor: '#f7fbff', endColor: '#ff7c4f' },
-      { source: 'Universidad',  target: 'Mismo campo',      value: uniSame, startColor: '#f7fbff', endColor: '#ffd84a' },
-      { source: 'Universidad',  target: 'Cambio de carrera',value: uniCambio, startColor: '#f7fbff', endColor: '#ffad33' },
-      { source: 'Universidad',  target: 'Emprendimiento',   value: uniEmp, startColor: '#f7fbff', endColor: '#ff7c4f' },
-      { source: 'Posgrado',     target: 'Mismo campo',      value: postgradSame, startColor: '#f7fbff', endColor: '#ffd84a' },
-      { source: 'Posgrado',     target: 'Cambio de carrera',value: postgradCambio, startColor: '#f7fbff', endColor: '#ffad33' },
-      { source: 'Posgrado',     target: 'Emprendimiento',   value: postgradEmp, startColor: '#f7fbff', endColor: '#ff7c4f' },
+      { source: 'Secundaria',   target: 'Mismo campo',      value: secSame },
+      { source: 'Secundaria',   target: 'Cambio de carrera',value: secCambio },
+      { source: 'Secundaria',   target: 'Emprendimiento',   value: secEmp },
+      { source: 'Universidad',  target: 'Mismo campo',      value: uniSame },
+      { source: 'Universidad',  target: 'Cambio de carrera',value: uniCambio },
+      { source: 'Universidad',  target: 'Emprendimiento',   value: uniEmp },
+      { source: 'Posgrado',     target: 'Mismo campo',      value: postgradSame },
+      { source: 'Posgrado',     target: 'Cambio de carrera',value: postgradCambio },
+      { source: 'Posgrado',     target: 'Emprendimiento',   value: postgradEmp },
       // Career decision → Outcome
-      { source: 'Mismo campo',      target: 'Integración exitosa', value: sfEx, startColor: '#d8ff8f', endColor: '#3dff8f' },
-      { source: 'Mismo campo',      target: 'Integración parcial', value: sfPa, startColor: '#fff089', endColor: '#ffe066' },
-      { source: 'Mismo campo',      target: 'No integró',          value: sfNo, startColor: '#ff9ab2', endColor: '#ff4d6d' },
-      { source: 'Cambio de carrera',target: 'Integración exitosa', value: cbEx, startColor: '#d8ff8f', endColor: '#3dff8f' },
-      { source: 'Cambio de carrera',target: 'Integración parcial', value: cbPa, startColor: '#fff089', endColor: '#ffe066' },
-      { source: 'Cambio de carrera',target: 'No integró',          value: cbNo, startColor: '#ff9ab2', endColor: '#ff4d6d' },
-      { source: 'Emprendimiento',   target: 'Integración exitosa', value: emEx, startColor: '#d8ff8f', endColor: '#3dff8f' },
-      { source: 'Emprendimiento',   target: 'Integración parcial', value: emPa, startColor: '#fff089', endColor: '#ffe066' },
-      { source: 'Emprendimiento',   target: 'No integró',          value: emNo, startColor: '#ff9ab2', endColor: '#ff4d6d' },
+      { source: 'Mismo campo',      target: 'Integración exitosa', value: sfEx },
+      { source: 'Mismo campo',      target: 'Integración parcial', value: sfPa },
+      { source: 'Mismo campo',      target: 'No integró',          value: sfNo },
+      { source: 'Cambio de carrera',target: 'Integración exitosa', value: cbEx },
+      { source: 'Cambio de carrera',target: 'Integración parcial', value: cbPa },
+      { source: 'Cambio de carrera',target: 'No integró',          value: cbNo },
+      { source: 'Emprendimiento',   target: 'Integración exitosa', value: emEx },
+      { source: 'Emprendimiento',   target: 'Integración parcial', value: emPa },
+      { source: 'Emprendimiento',   target: 'No integró',          value: emNo },
     ],
   };
 
-  // High-contrast palette for dark background
+  // Paleta validada para fondo oscuro: educación = rampa azul ordinal, decisiones = categórica,
+  // resultados = colores de estado (bueno / advertencia / crítico).
   const nodeColorMap: Record<string, string> = {
-    'Total casos':          '#e8eaf6',
-    // Education — blue family
-    'Secundaria':           '#64b5f6',
-    'Universidad':          '#1e88e5',
-    'Posgrado':             '#0d47a1',
-    // Career — amber/orange family
-    'Mismo campo':          '#ffca28',
-    'Cambio de carrera':    '#fb8c00',
-    'Emprendimiento':       '#e64a19',
-    // Outcomes
-    'Integración exitosa':  '#00e676',
-    'Integración parcial':  '#ffd740',
-    'No integró':           '#ff1744',
+    'Total casos':          '#c3c2b7',
+    'Secundaria':           '#86b6ef',
+    'Universidad':          '#3987e5',
+    'Posgrado':             '#1c5cab',
+    'Mismo campo':          '#d55181',
+    'Cambio de carrera':    '#9085e9',
+    'Emprendimiento':       '#d95926',
+    'Integración exitosa':  '#0ca30c',
+    'Integración parcial':  '#fab219',
+    'No integró':           '#d03b3b',
   };
 
   const kpis = [
@@ -223,31 +299,31 @@ export function SocialEngineeringSankey({
       { id: 'Sin integración laboral' },
     ],
     links: [
-      { source: 'Proficiente en idioma', target: 'Skilled', value: skilledProf, startColor: '#ffffff', endColor: '#8cd2ff' },
-      { source: 'Proficiente en idioma', target: 'Family', value: familyProf, startColor: '#ffffff', endColor: '#8cd2ff' },
-      { source: 'Proficiente en idioma', target: 'Humanitarian', value: humanProf, startColor: '#ffffff', endColor: '#8cd2ff' },
+      { source: 'Proficiente en idioma', target: 'Skilled', value: skilledProf },
+      { source: 'Proficiente en idioma', target: 'Family', value: familyProf },
+      { source: 'Proficiente en idioma', target: 'Humanitarian', value: humanProf },
 
-      { source: 'No proficiente', target: 'Skilled', value: skilledNotProf, startColor: '#ffd0da', endColor: '#ff8ca5' },
-      { source: 'No proficiente', target: 'Family', value: familyNotProf, startColor: '#ffd0da', endColor: '#ff8ca5' },
-      { source: 'No proficiente', target: 'Humanitarian', value: humanNotProf, startColor: '#ffd0da', endColor: '#ff8ca5' },
+      { source: 'No proficiente', target: 'Skilled', value: skilledNotProf },
+      { source: 'No proficiente', target: 'Family', value: familyNotProf },
+      { source: 'No proficiente', target: 'Humanitarian', value: humanNotProf },
 
-      { source: 'Skilled', target: 'Integración laboral exitosa', value: skilledEmp, startColor: '#c9f8ff', endColor: '#4dff99' },
-      { source: 'Skilled', target: 'Sin integración laboral', value: skilledNotEmp, startColor: '#c9f8ff', endColor: '#ff6262' },
-      { source: 'Family', target: 'Integración laboral exitosa', value: familyEmp, startColor: '#c9f8ff', endColor: '#4dff99' },
-      { source: 'Family', target: 'Sin integración laboral', value: familyNotEmp, startColor: '#c9f8ff', endColor: '#ff6262' },
-      { source: 'Humanitarian', target: 'Integración laboral exitosa', value: humanEmp, startColor: '#c9f8ff', endColor: '#4dff99' },
-      { source: 'Humanitarian', target: 'Sin integración laboral', value: humanNotEmp, startColor: '#c9f8ff', endColor: '#ff6262' },
+      { source: 'Skilled', target: 'Integración laboral exitosa', value: skilledEmp },
+      { source: 'Skilled', target: 'Sin integración laboral', value: skilledNotEmp },
+      { source: 'Family', target: 'Integración laboral exitosa', value: familyEmp },
+      { source: 'Family', target: 'Sin integración laboral', value: familyNotEmp },
+      { source: 'Humanitarian', target: 'Integración laboral exitosa', value: humanEmp },
+      { source: 'Humanitarian', target: 'Sin integración laboral', value: humanNotEmp },
     ],
   };
 
   const languageNodeColorMap: Record<string, string> = {
-    'Proficiente en idioma': '#eaf6ff',
-    'No proficiente': '#ffb4c4',
-    Skilled: '#4aa3ff',
-    Family: '#57d9a3',
-    Humanitarian: '#ffb347',
-    'Integración laboral exitosa': '#00e676',
-    'Sin integración laboral': '#ff4d6d',
+    'Proficiente en idioma': '#3987e5',
+    'No proficiente': '#d95926',
+    Skilled: '#199e70',
+    Family: '#9085e9',
+    Humanitarian: '#d55181',
+    'Integración laboral exitosa': '#0ca30c',
+    'Sin integración laboral': '#d03b3b',
   };
 
   const totalProf = skilledProf + familyProf + humanProf;
@@ -281,50 +357,22 @@ export function SocialEngineeringSankey({
         ))}
       </div>
 
-      <div className="social-sankey-chart-wrap">
-        <div className="social-sankey-canvas">
-          <ResponsiveSankey
-            data={sankeyData}
-            margin={{ top: 20, right: 130, bottom: 20, left: 120 }}
-            align="justify"
-            colors={(node: any) => nodeColorMap[node.id] ?? '#90a4ae'}
-            nodeOpacity={1}
-            nodeThickness={22}
-            nodeSpacing={20}
-            nodeBorderWidth={0}
-            nodeBorderColor={{ from: 'color', modifiers: [['darker', 0.6]] }}
-            nodeTooltip={({ node }: any) => (
-              <div className="sankey-tooltip">
-                <strong>{String(node.id)}</strong>
-                <span>{Math.round(node.value)} casos por 100</span>
-              </div>
-            )}
-            linkOpacity={0.82}
-            linkHoverOthersOpacity={0.08}
-            linkBlendMode="normal"
-            enableLinkGradient
-            linkTooltip={({ link }: any) => (
-              <div className="sankey-tooltip">
-                <strong>{String(link.source.id)} &rarr; {String(link.target.id)}</strong>
-                <span>{Math.round(link.value)} casos por 100</span>
-              </div>
-            )}
-            labelPosition="outside"
-            labelOrientation="horizontal"
-            labelPadding={10}
-            labelTextColor={{ from: 'color', modifiers: [['brighter', 1.8]] }}
-            theme={{
-              labels: {
-                text: {
-                  fontSize: 12,
-                  fontWeight: 700,
-                  fill: '#ffffff',
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
+      <FlowChart
+        data={sankeyData}
+        colorMap={nodeColorMap}
+        ariaLabel="Diagrama de flujo: nivel educativo, decisión de carrera y resultado de integración"
+      />
+      <FlowLegend
+        items={[
+          ['Nivel educativo', '#3987e5'],
+          ['Mismo campo', '#d55181'],
+          ['Cambio de carrera', '#9085e9'],
+          ['Emprendimiento', '#d95926'],
+          ['Integración exitosa', '#0ca30c'],
+          ['Integración parcial', '#fab219'],
+          ['No integró', '#d03b3b'],
+        ]}
+      />
 
       <p className="social-sankey-footnote">
         Mayor nivel educativo y mantener el campo de trabajo aumentan la probabilidad de integración exitosa.
@@ -348,49 +396,22 @@ export function SocialEngineeringSankey({
         ))}
       </div>
 
-      <div className="social-sankey-chart-wrap">
-        <div className="social-sankey-canvas">
-          <ResponsiveSankey
-            data={languageIntegrationData}
-            margin={{ top: 20, right: 130, bottom: 20, left: 120 }}
-            align="justify"
-            colors={(node: any) => languageNodeColorMap[node.id] ?? '#d7e3ea'}
-            nodeOpacity={1}
-            nodeThickness={22}
-            nodeSpacing={24}
-            nodeBorderWidth={0}
-            nodeTooltip={({ node }: any) => (
-              <div className="sankey-tooltip">
-                <strong>{String(node.id)}</strong>
-                <span>{Math.round(node.value)} casos por 100</span>
-              </div>
-            )}
-            linkOpacity={0.84}
-            linkHoverOthersOpacity={0.1}
-            linkBlendMode="normal"
-            enableLinkGradient
-            linkTooltip={({ link }: any) => (
-              <div className="sankey-tooltip">
-                <strong>{String(link.source.id)} &rarr; {String(link.target.id)}</strong>
-                <span>{Math.round(link.value)} casos por 100</span>
-              </div>
-            )}
-            labelPosition="outside"
-            labelOrientation="horizontal"
-            labelPadding={10}
-            labelTextColor={{ from: 'color', modifiers: [['brighter', 1.8]] }}
-            theme={{
-              labels: {
-                text: {
-                  fontSize: 12,
-                  fontWeight: 700,
-                  fill: '#ffffff',
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
+      <FlowChart
+        data={languageIntegrationData}
+        colorMap={languageNodeColorMap}
+        ariaLabel="Diagrama de flujo: dominio del idioma, tipo de visa y resultado laboral"
+      />
+      <FlowLegend
+        items={[
+          ['Proficiente en idioma', '#3987e5'],
+          ['No proficiente', '#d95926'],
+          ['Skilled', '#199e70'],
+          ['Family', '#9085e9'],
+          ['Humanitarian', '#d55181'],
+          ['Empleo', '#0ca30c'],
+          ['Sin empleo', '#d03b3b'],
+        ]}
+      />
 
       <p className="social-sankey-footnote">
         Fuente real: Australian Bureau of Statistics, Permanent migrants in Australia (2021 release).

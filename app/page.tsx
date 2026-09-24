@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { InstallPWA } from '../src/components/InstallPWA';
-import { Activity, FileText, Brain, TrendingUp, BookOpen, Route } from 'lucide-react';
+import { Activity, FileText, Brain, TrendingUp, BookOpen, Route, Landmark } from 'lucide-react';
 import { DocumentUploader } from '../src/components/DocumentUploader';
 import { SkillGapPanel } from '../src/components/SkillGapPanel';
 import { PsychTest } from '../src/components/PsychTest';
 import { PassportPanel } from '../src/components/PassportPanel';
 import { HermesChat } from '../src/components/HermesChat';
 import { JobMatchesPanel } from '../src/components/JobMatchesPanel';
+import { FiscalPanel } from '../src/components/FiscalPanel';
 import { getStoredMigrantProfile, storeMigrantProfile } from '../src/core/MigrantProfileStore';
 import { getPsychMemoryCycle } from '../src/core/PsychMemoryCycle';
 import { getScreeningSessions } from '../src/core/ScreeningSessionStore';
@@ -106,6 +107,16 @@ export default function Home() {
             Busca vacantes en tiempo real, compara fit por skills/idioma/seniority y detecta brechas para aplicar mejor.
           </p>
           <JobMatchesPanel migrant={migrantPerson} />
+        </div>
+
+        <div className="feature-card feature-card-wide">
+          <Landmark size={32} color="var(--accent-cyan)" className="feature-icon" />
+          <h2>Impuestos y Residencia Fiscal</h2>
+          <p>
+            Calcula tu salario neto, compara regímenes para recién llegados (Ley Beckham, 30% ruling, IFICI…),
+            reglas de residencia fiscal, vías a residencia permanente e indicadores económicos del país.
+          </p>
+          <FiscalPanel migrant={migrantPerson} />
         </div>
 
         <div className="feature-card feature-card-route">

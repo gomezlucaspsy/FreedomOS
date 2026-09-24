@@ -32,6 +32,13 @@ const COUNTRY_HINTS: { pattern: RegExp; country: string }[] = [
   { pattern: /uruguay/i, country: 'Uruguay' },
   { pattern: /brasil|brazil/i, country: 'Brasil' },
   { pattern: /reino unido|uk|united kingdom/i, country: 'Reino Unido' },
+  { pattern: /\bper[uú]\b/i, country: 'Perú' },
+  { pattern: /paraguay/i, country: 'Paraguay' },
+  { pattern: /panam[aá]/i, country: 'Panamá' },
+  { pattern: /costa rica/i, country: 'Costa Rica' },
+  { pattern: /portugal/i, country: 'Portugal' },
+  { pattern: /francia|france/i, country: 'Francia' },
+  { pattern: /italia|italy/i, country: 'Italia' },
 ];
 
 // ─── Extraction helpers ───────────────────────────────────────────────────────
